@@ -35,7 +35,16 @@ export const Route = createFileRoute("/catalog/$slug")({
 function ProductPage() {
   const { slug } = Route.useParams();
   const products = useProducts((s) => s.items);
+  const add = useCart((s) => s.add);
+  const [added, setAdded] = useState(false);
+  const [view, setView] = useState<"photo" | "3d">("photo");
+  const allReviews = useReviews((s) => s.items);
+  const addReview = useReviews((s) => s.add);
   const product = products.find((p) => p.slug === slug);
+  const productReviews = useMemo(
+    () => allReviews.filter((r) => product && r.productSlug === product.slug && r.approved),
+    [allReviews, product],
+  );
   if (!product) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-24 text-center">
@@ -46,15 +55,6 @@ function ProductPage() {
       </div>
     );
   }
-  const add = useCart((s) => s.add);
-  const [added, setAdded] = useState(false);
-  const [view, setView] = useState<"photo" | "3d">("photo");
-  const allReviews = useReviews((s) => s.items);
-  const addReview = useReviews((s) => s.add);
-  const productReviews = useMemo(
-    () => allReviews.filter((r) => r.productSlug === product.slug && r.approved),
-    [allReviews, product.slug],
-  );
   const avgRating =
     productReviews.length > 0
       ? productReviews.reduce((n, r) => n + r.rating, 0) / productReviews.length
