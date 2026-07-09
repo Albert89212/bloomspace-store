@@ -1,0 +1,228 @@
+// SADOVA — MySQL schema (для деплоя backend на своём VPS).
+// Запуск: cd server && npx prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  YOOKASSA
+  CLOUDPAYMENTS
+  TINKOFF
+  SBP
+}
+
+enum DeliveryKind {
+  PVZ
+  COURIER
+  POST
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  phone        String?   @unique
+  name         String?
+  passwordHash String
+  role         Role      @default(USER)
+  twoFactorSecret String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  addresses    Address[]
+  orders       Order[]
+  reviews      Review[]
+  chats        Chat[]
+  agreements   Agreement[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  slug     String    @unique
+  name     String
+  parentId String?
+  parent   Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  description String   @db.Text
+  price       Int      // в копейках
+  currency    String   @default("RUB")
+  stock       Int      @default(0)
+  images      Json     // ["https://..."]
+  specs       Json     // [{label, value}]
+  rating      Float    @default(0)
+  isActive    Boolean  @default(true)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems  OrderItem[]
+  reviews     Review[]
+
+  @@index([categoryId])
+}
+
+model Address {
+  id         String @id @default(uuid())
+  userId     String
+  city       String
+  street     String
+  zip        String?
+  comment    String?
+  isDefault  Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  userId         String
+  status         OrderStatus  @default(PENDING)
+  subtotal       Int
+  deliveryPrice  Int          @default(0)
+  total          Int
+  currency       String       @default("RUB")
+
+  deliveryKind   DeliveryKind
+  deliveryCarrier String?     // 'cdek' | 'boxberry' | 'pochta' | 'dpd'
+  pvzCode        String?
+  addressId      String?
+
+  paymentProvider PaymentProvider?
+  paymentId      String?
+  paidAt         DateTime?
+
+  agreementId    String?      @unique
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+  address    Address?    @relation(fields: [addressId], references: [id])
+  items      OrderItem[]
+  agreement  Agreement?  @relation(fields: [agreementId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  name      String   // копия на момент заказа
+  price     Int
+  quantity  Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  productId  String
+  rating     Int      // 1..5
+  text       String   @db.Text
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  closedAt  DateTime?
+
+  user     User      @relation(fields: [userId], references: [id])
+  messages Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  fromRole  Role
+  authorId  String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+model Agreement {
+  id           String   @id @default(uuid())
+  userId       String
+  offerAccepted Boolean @default(true)
+  privacyAccepted Boolean @default(true)
+  ip           String
+  userAgent    String   @db.Text
+  createdAt    DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  order Order?
+
+  @@index([userId])
+}
+
+model Promo {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  percentOff   Int      // 0..100
+  activeFrom   DateTime?
+  activeTo     DateTime?
+  usageLimit   Int?
+  usageCount   Int      @default(0)
+  isActive     Boolean  @default(true)
+}
