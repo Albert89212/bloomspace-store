@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Send, Youtube, Instagram } from "lucide-react";
+import { company } from "@/lib/company";
 
 export function SiteFooter() {
   return (
@@ -52,8 +53,25 @@ export function SiteFooter() {
             ]}
           />
         </div>
-        <div className="mt-12 flex flex-col justify-between gap-2 border-t border-hairline pt-6 text-[12px] text-muted-foreground md:flex-row">
-          <div className="flex items-center gap-2">
+        <div className="mt-12 space-y-4 border-t border-hairline pt-6 text-[12px] text-muted-foreground">
+          <div className="grid gap-2 md:grid-cols-2">
+            <div>
+              <div className="font-medium text-foreground">{company.legalName}</div>
+              <div className="mt-1">ИНН {company.inn} · ОГРНИП {company.ogrnip}</div>
+              <div className="mt-1">{company.address}</div>
+            </div>
+            <div className="md:text-right">
+              <div>Р/с {company.account}</div>
+              <div>{company.bank}</div>
+              <div>БИК {company.bik} · К/с {company.corrAccount}</div>
+              <div className="mt-1">
+                <a href={`mailto:${company.supportEmail}`} className="underline">
+                  {company.supportEmail}
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 border-t border-hairline pt-4">
             <span className="inline-flex h-3 w-4 overflow-hidden rounded-[2px] border border-hairline">
               <span className="flex h-full w-full flex-col">
                 <span className="h-1/3 bg-white" />
@@ -61,9 +79,8 @@ export function SiteFooter() {
                 <span className="h-1/3 bg-[#D52B1E]" />
               </span>
             </span>
-            © {new Date().getFullYear()} SADOVA. Сделано в России.
+            © {new Date().getFullYear()} SADOVA · {company.shortName}. Сделано в России.
           </div>
-          <div>ИП / ООО «Садова». ИНН 0000000000</div>
         </div>
       </div>
     </footer>
