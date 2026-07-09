@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Star } from "lucide-react";
+import { ArrowLeft, Check, Star, ImagePlus, X, ShieldCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatPrice, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
@@ -238,6 +238,7 @@ function ReviewsSection({
     text: string;
     userId: string;
     verifiedPurchase: boolean;
+    photos?: string[];
   }) => void;
 }) {
   const allReviews = useReviews((s) => s.items);
@@ -254,7 +255,19 @@ function ReviewsSection({
     );
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+
+  function onFiles(files: FileList | null) {
+    if (!files) return;
+    const remain = 4 - photos.length;
+    Array.from(files).slice(0, remain).forEach((f) => {
+      if (!f.type.startsWith("image/")) return;
+      const r = new FileReader();
+      r.onload = () => setPhotos((p) => [...p, r.result as string]);
+      r.readAsDataURL(f);
+    });
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -266,9 +279,11 @@ function ReviewsSection({
       text: text.trim(),
       userId: user.id,
       verifiedPurchase: true,
+      photos: photos.length ? photos : undefined,
     });
     setText("");
     setRating(5);
+    setPhotos([]);
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 4000);
   }
@@ -287,7 +302,17 @@ function ReviewsSection({
           {reviews.map((r) => (
             <li key={r.id} className="rounded-2xl bg-surface p-6">
               <div className="flex items-center justify-between">
-                <div className="text-[14px] font-medium">{r.author}</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-[14px] font-medium">{r.author}</div>
+                  {r.verifiedPurchase && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      style={{ backgroundColor: "var(--brand-soft)", color: "var(--brand)" }}
+                    >
+                      <ShieldCheck className="h-3 w-3" /> Покупатель проверен
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
@@ -300,6 +325,21 @@ function ReviewsSection({
                 </div>
               </div>
               <p className="mt-3 text-[14px] leading-relaxed">{r.text}</p>
+              {r.photos && r.photos.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {r.photos.map((src, i) => (
+                    <a
+                      key={i}
+                      href={src}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block h-20 w-20 overflow-hidden rounded-xl border border-hairline"
+                    >
+                      <img src={src} alt="Фото отзыва" className="h-full w-full object-cover" />
+                    </a>
+                  ))}
+                </div>
+              )}
               <div className="mt-3 text-[11px] text-muted-foreground">
                 {new Date(r.createdAt).toLocaleDateString("ru-RU")}
               </div>
@@ -354,9 +394,41 @@ function ReviewsSection({
               required
             />
           </label>
+          <div className="mt-3">
+            <span className="mb-1.5 block text-[12px] text-muted-foreground">
+              Фото (до 4 шт.)
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              {photos.map((src, i) => (
+                <div key={i} className="relative h-16 w-16 overflow-hidden rounded-xl border border-hairline">
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setPhotos((p) => p.filter((_, idx) => idx !== i))}
+                    className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-background/90 text-foreground shadow"
+                    aria-label="Удалить фото"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {photos.length < 4 && (
+                <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-xl border border-dashed border-hairline text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">
+                  <ImagePlus className="h-5 w-5" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => onFiles(e.target.files)}
+                  />
+                </label>
+              )}
+            </div>
+          </div>
           <button
             type="submit"
-            className="mt-4 h-11 w-full rounded-full bg-foreground text-[13px] font-medium text-background"
+            className="mt-4 h-11 w-full rounded-full bg-foreground text-[13px] font-medium text-background transition-transform hover:scale-[1.01]"
           >
                 Опубликовать отзыв
               </button>
