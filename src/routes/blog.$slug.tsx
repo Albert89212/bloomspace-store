@@ -54,8 +54,8 @@ function BlogPost() {
         className="mt-8 aspect-[16/9] w-full rounded-3xl object-cover"
       />
       <div className="mt-8 space-y-4 text-[15px] leading-relaxed text-foreground/90">
-        {post.body.map((p, i) => (
-          <p key={i}>{p}</p>
+        {post.body.map((paragraph: string, i: number) => (
+          <p key={i}>{paragraph}</p>
         ))}
       </div>
 

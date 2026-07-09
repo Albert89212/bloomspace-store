@@ -36,7 +36,7 @@ function B2BPage() {
     create({
       subject: `B2B · ${form.company} (ИНН ${form.inn})`,
       email: form.email,
-      message: [
+      text: [
         `Контакт: ${form.contact}, ${form.phone}`,
         `Проект: ${form.scope}`,
         form.message,
