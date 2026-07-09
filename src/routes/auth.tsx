@@ -152,13 +152,12 @@ function AuthForm() {
               <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
                 <span className="h-px flex-1 bg-hairline" />или<span className="h-px flex-1 bg-hairline" />
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <SocialBtn label="VK ID" />
-                <SocialBtn label="Яндекс" />
-                <SocialBtn label="Telegram" />
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <SocialBtn label="VK ID" color="#0077FF" initial="VK" />
+                <SocialBtn label="Яндекс" color="#FC3F1D" initial="Я" />
               </div>
               <div className="mt-2 text-center text-[10px] text-muted-foreground">
-                Соцлогин подключается на сервере (VK ID, Yandex ID, Telegram Login).
+                Соцлогин подключается на сервере (VK ID, Yandex ID).
               </div>
             </div>
           )}
@@ -182,13 +181,19 @@ function AuthForm() {
   );
 }
 
-function SocialBtn({ label }: { label: string }) {
+function SocialBtn({ label, color, initial }: { label: string; color: string; initial: string }) {
   return (
     <button
       type="button"
       onClick={() => alert(`${label}: подключается на сервере через OAuth. Демо-заглушка.`)}
-      className="h-10 rounded-full border border-hairline text-[12px] font-medium hover:bg-secondary"
+      className="flex h-10 items-center justify-center gap-2 rounded-full border border-hairline text-[12px] font-medium transition-colors hover:bg-secondary"
     >
+      <span
+        className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+        style={{ backgroundColor: color }}
+      >
+        {initial}
+      </span>
       {label}
     </button>
   );
