@@ -56,11 +56,6 @@ function AuthForm() {
             ? "Войдите, чтобы отслеживать заказы и оставлять отзывы"
             : "Регистрация даёт бонусы за приглашённых друзей"}
         </p>
-        <div className="mt-4 rounded-2xl border border-hairline bg-surface p-3 text-[12px] text-muted-foreground">
-          <b>Тестовый аккаунт владельца:</b>{" "}
-          <code className="rounded bg-background px-1.5 py-0.5">owner@sadova.ru</code> /{" "}
-          <code className="rounded bg-background px-1.5 py-0.5">owner123</code>
-        </div>
       </motion.div>
 
       <AnimatePresence mode="wait">
