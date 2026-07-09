@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, User } from "lucide-react";
+import { ShieldCheck, ShoppingBag, User } from "lucide-react";
 import { useCart, selectCartCount } from "@/lib/cart-store";
+import { useAdmin } from "@/lib/admin-store";
 
 const nav = [
   { to: "/", label: "Главная" },
@@ -13,6 +14,7 @@ const nav = [
 
 export function SiteHeader() {
   const count = useCart(selectCartCount);
+  const isAdmin = useAdmin((s) => s.isAdmin);
 
   return (
     <header className="glass sticky top-0 z-50">
@@ -35,6 +37,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              aria-label="Админка"
+            >
+              <ShieldCheck className="h-[18px] w-[18px]" />
+            </Link>
+          )}
           <Link
             to="/auth"
             className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
