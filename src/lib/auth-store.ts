@@ -10,26 +10,37 @@ export interface AppUser {
   name: string;
   email: string;
   password: string; // demo-only, plaintext. В проде — хешируем на бэкенде.
-  role: StaffRole | "customer";
+  role: StaffRole | "customer" | "dealer";
   referralCode: string;
   referredBy?: string; // referralCode того, кто пригласил
   bonusBalance: number; // бонусные рубли за приглашённых
   createdAt: number;
+  emailVerified?: boolean;
 }
 
 interface AuthState {
   users: AppUser[];
   currentUserId: string | null;
-  signup: (data: {
+  pendingSignup: {
     name: string;
     email: string;
     password: string;
     referralCode?: string;
-  }) => { ok: true } | { ok: false; error: string };
+    code: string;
+    expiresAt: number;
+  } | null;
+  requestSignup: (data: {
+    name: string;
+    email: string;
+    password: string;
+    referralCode?: string;
+  }) => { ok: true; code: string } | { ok: false; error: string };
+  confirmSignup: (code: string) => { ok: true } | { ok: false; error: string };
   login: (email: string, password: string) => { ok: true } | { ok: false; error: string };
   logout: () => void;
   updateUser: (id: string, patch: Partial<AppUser>) => void;
   removeUser: (id: string) => void;
+  addBonus: (id: string, delta: number) => void;
 }
 
 function code(len = 6) {
@@ -46,6 +57,7 @@ const TEST_OWNER: AppUser = {
   referralCode: "OWNER1",
   bonusBalance: 0,
   createdAt: Date.now(),
+  emailVerified: true,
 };
 
 export const useAuth = create<AuthState>()(
@@ -53,33 +65,60 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       users: [TEST_OWNER],
       currentUserId: null,
-      signup: ({ name, email, password, referralCode }) => {
+      pendingSignup: null,
+      requestSignup: ({ name, email, password, referralCode }) => {
         email = email.trim().toLowerCase();
         if (!/\S+@\S+\.\S+/.test(email)) return { ok: false, error: "Некорректный email" };
         if (password.length < 6) return { ok: false, error: "Пароль минимум 6 символов" };
         if (get().users.some((u) => u.email === email))
           return { ok: false, error: "Email уже зарегистрирован" };
-        const referrer = referralCode
+        // Генерируем 6-значный код подтверждения.
+        // В проде — Lovable Emails / SMTP отправляет письмо;
+        // сейчас показываем код в UI (демо).
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        set({
+          pendingSignup: {
+            name: name.trim(),
+            email,
+            password,
+            referralCode,
+            code: otp,
+            expiresAt: Date.now() + 10 * 60 * 1000,
+          },
+        });
+        return { ok: true, code: otp };
+      },
+      confirmSignup: (input) => {
+        const p = get().pendingSignup;
+        if (!p) return { ok: false, error: "Нет активного запроса. Начните заново." };
+        if (Date.now() > p.expiresAt) {
+          set({ pendingSignup: null });
+          return { ok: false, error: "Код истёк. Запросите новый." };
+        }
+        if (input.trim() !== p.code) return { ok: false, error: "Неверный код" };
+        const referrer = p.referralCode
           ? get().users.find(
-              (u) => u.referralCode.toUpperCase() === referralCode.toUpperCase(),
+              (u) => u.referralCode.toUpperCase() === p.referralCode!.toUpperCase(),
             )
           : undefined;
         const user: AppUser = {
           id: crypto.randomUUID(),
-          name: name.trim(),
-          email,
-          password,
+          name: p.name,
+          email: p.email,
+          password: p.password,
           role: "customer",
           referralCode: code(),
           referredBy: referrer?.referralCode,
-          bonusBalance: referrer ? 500 : 0, // приветственный бонус за приглашение
+          bonusBalance: referrer ? 500 : 0,
           createdAt: Date.now(),
+          emailVerified: true,
         };
         set((s) => ({
           users: s.users.map((u) =>
             referrer && u.id === referrer.id ? { ...u, bonusBalance: u.bonusBalance + 1000 } : u,
           ).concat(user),
           currentUserId: user.id,
+          pendingSignup: null,
         }));
         return { ok: true };
       },
@@ -97,6 +136,12 @@ export const useAuth = create<AuthState>()(
         set((s) => ({
           users: s.users.filter((u) => u.id !== id),
           currentUserId: s.currentUserId === id ? null : s.currentUserId,
+        })),
+      addBonus: (id, delta) =>
+        set((s) => ({
+          users: s.users.map((u) =>
+            u.id === id ? { ...u, bonusBalance: Math.max(0, u.bonusBalance + delta) } : u,
+          ),
         })),
     }),
     { name: "sadova-auth" },
