@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -39,6 +40,11 @@ const SupportRoute = SupportRouteImport.update({
 const LifeRoute = LifeRouteImport.update({
   id: '/life',
   path: '/life',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/checkout'
     | '/life'
     | '/support'
     | '/admin/life'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/cart'
+    | '/checkout'
     | '/life'
     | '/support'
     | '/admin/life'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/checkout'
     | '/life'
     | '/support'
     | '/admin/life'
@@ -283,6 +295,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
@@ -307,6 +320,13 @@ declare module '@tanstack/react-router' {
       path: '/life'
       fullPath: '/life'
       preLoaderRoute: typeof LifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -475,6 +495,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
   CatalogSlugRoute: CatalogSlugRoute,
