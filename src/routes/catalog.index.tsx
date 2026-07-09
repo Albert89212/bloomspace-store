@@ -58,6 +58,7 @@ function CatalogPage() {
               key={c.id}
               active={active === c.id}
               onClick={() => setActive(c.id)}
+              color={catColor[c.id]}
             >
               {c.label}
             </FilterChip>
@@ -89,24 +90,37 @@ function CatalogPage() {
   );
 }
 
+const catColor: Record<string, string> = {
+  chairs: "var(--brand)",
+  tables: "var(--accent-warm)",
+  sofas: "var(--accent-cool)",
+  loungers: "var(--brand)",
+  accessories: "var(--accent-warm)",
+};
+
 function FilterChip({
   active,
   onClick,
   children,
+  color,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  color?: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-[13px] transition-all ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] transition-all active:scale-[0.97] ${
         active
           ? "border-foreground bg-foreground text-background"
           : "border-hairline bg-surface text-muted-foreground hover:text-foreground"
       }`}
     >
+      {color && (
+        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+      )}
       {children}
     </button>
   );
