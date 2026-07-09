@@ -31,6 +31,7 @@ import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
+import { Route as AdminChatsRouteImport } from './routes/admin.chats'
 
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
@@ -142,6 +143,11 @@ const AdminLifeRoute = AdminLifeRouteImport.update({
   path: '/life',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminChatsRoute = AdminChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -462,10 +474,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLifeRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/chats': {
+      id: '/admin/chats'
+      path: '/chats'
+      fullPath: '/admin/chats'
+      preLoaderRoute: typeof AdminChatsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminChatsRoute: typeof AdminChatsRoute
   AdminLifeRoute: typeof AdminLifeRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -477,6 +497,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminChatsRoute: AdminChatsRoute,
   AdminLifeRoute: AdminLifeRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
