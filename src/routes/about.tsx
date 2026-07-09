@@ -17,7 +17,7 @@ function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-24">
       <motion.h1
-        initial={{ opacity: 0, y: 16 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="text-4xl font-semibold tracking-tight md:text-6xl"
@@ -25,7 +25,7 @@ function AboutPage() {
         Мебель, спроектированная для жизни на воздухе.
       </motion.h1>
       <motion.p
-        initial={{ opacity: 0, y: 16 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
         className="mt-8 text-[17px] leading-relaxed text-muted-foreground"

@@ -63,7 +63,7 @@ function AuthForm() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <motion.div initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-semibold tracking-tight">
           {mode === "login" ? "С возвращением" : mode === "signup" ? "Создать аккаунт" : "Подтверждение почты"}
         </h1>
@@ -79,7 +79,7 @@ function AuthForm() {
       <AnimatePresence mode="wait">
         <motion.form
           key={mode}
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.25 }}

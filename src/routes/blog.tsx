@@ -24,7 +24,7 @@ export const Route = createFileRoute("/blog")({
 function BlogIndex() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div initial={false} animate={{ opacity: 1, y: 0 }}>
         <div className="text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
           Журнал
         </div>
@@ -40,7 +40,7 @@ function BlogIndex() {
         {blogPosts.map((p, i) => (
           <motion.article
             key={p.slug}
-            initial={{ opacity: 0, y: 16 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
           >

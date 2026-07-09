@@ -23,7 +23,7 @@ function Index() {
       <section className="relative">
         <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-6">
           <div className="relative overflow-hidden rounded-[28px] sm:rounded-[36px]">
-            <div className="h-[78vh] min-h-[560px] w-full sm:h-[82vh]">
+            <div className="h-[78vh] min-h-[560px] w-full sm:h-[82vh] sm:max-h-[820px]">
               <EditableMedia
                 id="home.hero.image"
                 defaultSrc={hero}
@@ -51,7 +51,7 @@ function Index() {
             {/* Top row — eyebrow & badge */}
             <div className="absolute inset-x-0 top-0 flex items-start justify-between p-5 sm:p-8">
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-md"
@@ -60,7 +60,7 @@ function Index() {
                 Коллекция 2026
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, y: -8 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md sm:inline-flex"
@@ -74,7 +74,7 @@ function Index() {
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-10 md:p-14">
               <div className="max-w-3xl text-white">
                 <motion.h1
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                   className="text-[40px] font-semibold leading-[0.98] tracking-tight sm:text-6xl md:text-[88px]"
@@ -87,7 +87,7 @@ function Index() {
                   />
                 </motion.h1>
                 <motion.p
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.15 }}
                   className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/85 sm:text-[17px]"
@@ -99,7 +99,7 @@ function Index() {
                   />
                 </motion.p>
                 <motion.div
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.25 }}
                   className="mt-7 flex flex-wrap items-center gap-3"
