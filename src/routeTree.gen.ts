@@ -25,7 +25,9 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
+import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
+import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
@@ -110,9 +112,19 @@ const AdminTicketsRoute = AdminTicketsRouteImport.update({
   path: '/tickets',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminStaffRoute = AdminStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
   id: '/reviews',
   path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPromocodesRoute = AdminPromocodesRouteImport.update({
+  id: '/promocodes',
+  path: '/promocodes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
@@ -143,7 +155,9 @@ export interface FileRoutesByFullPath {
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -164,7 +178,9 @@ export interface FileRoutesByTo {
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -187,7 +203,9 @@ export interface FileRoutesById {
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -211,7 +229,9 @@ export interface FileRouteTypes {
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/promocodes'
     | '/admin/reviews'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -232,7 +252,9 @@ export interface FileRouteTypes {
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/promocodes'
     | '/admin/reviews'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -254,7 +276,9 @@ export interface FileRouteTypes {
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/promocodes'
     | '/admin/reviews'
+    | '/admin/staff'
     | '/admin/tickets'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -396,11 +420,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTicketsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/staff': {
+      id: '/admin/staff'
+      path: '/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AdminStaffRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reviews': {
       id: '/admin/reviews'
       path: '/reviews'
       fullPath: '/admin/reviews'
       preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/promocodes': {
+      id: '/admin/promocodes'
+      path: '/promocodes'
+      fullPath: '/admin/promocodes'
+      preLoaderRoute: typeof AdminPromocodesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/products': {
@@ -431,7 +469,9 @@ interface AdminRouteChildren {
   AdminLifeRoute: typeof AdminLifeRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminPromocodesRoute: typeof AdminPromocodesRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminStaffRoute: typeof AdminStaffRoute
   AdminTicketsRoute: typeof AdminTicketsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -440,7 +480,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLifeRoute: AdminLifeRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminPromocodesRoute: AdminPromocodesRoute,
   AdminReviewsRoute: AdminReviewsRoute,
+  AdminStaffRoute: AdminStaffRoute,
   AdminTicketsRoute: AdminTicketsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

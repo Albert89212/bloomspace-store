@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { categories, products, type Category } from "@/lib/products";
+import { categories, type Category } from "@/lib/products";
+import { useProducts } from "@/lib/products-store";
 
 export const Route = createFileRoute("/catalog/")({
   head: () => ({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/catalog/")({
 function CatalogPage() {
   const [active, setActive] = useState<Category | "all">("all");
   const [q, setQ] = useState("");
-
+  const products = useProducts((s) => s.items);
   const filtered = useMemo(
     () =>
       products.filter((p) => {
@@ -31,7 +32,7 @@ function CatalogPage() {
           p.tagline.toLowerCase().includes(q.toLowerCase());
         return matchCat && matchQ;
       }),
-    [active, q],
+    [active, q, products],
   );
 
   return (

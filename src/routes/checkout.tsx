@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Check, CreditCard, Package, Truck } from "lucide-react";
-import { useState } from "react";
+import { Check, CreditCard, MapPin, Package, Tag, Truck, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useCart, selectCartTotal } from "@/lib/cart-store";
 import { useOrders, type DeliveryMethod, type PaymentMethod } from "@/lib/orders-store";
+import { usePromocodes } from "@/lib/promocodes-store";
 import { formatPrice } from "@/lib/products";
 
 export const Route = createFileRoute("/checkout")({
@@ -16,11 +17,28 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
+const deliveryOptions: {
+  id: DeliveryMethod;
+  name: string;
+  price: number;
+  hint: string;
+  pvz: boolean;
+  icon: typeof Package;
+}[] = [
+  { id: "cdek", name: "СДЭК — ПВЗ", price: 390, hint: "1–4 дня. Более 3500 пунктов выдачи.", pvz: true, icon: Package },
+  { id: "boxberry", name: "Boxberry — ПВЗ", price: 390, hint: "2–5 дней. Постоматы и пункты выдачи.", pvz: true, icon: Package },
+  { id: "ozon", name: "Ozon — ПВЗ", price: 290, hint: "2–4 дня. Крупнейшая сеть ПВЗ в РФ.", pvz: true, icon: Package },
+  { id: "pochta", name: "Почта России", price: 350, hint: "3–10 дней. Отделения по всей стране.", pvz: false, icon: MapPin },
+  { id: "courier", name: "Курьер до двери", price: 990, hint: "1–2 дня по крупным городам.", pvz: false, icon: Truck },
+];
+
 function CheckoutPage() {
   const items = useCart((s) => s.items);
   const total = useCart(selectCartTotal);
   const clear = useCart((s) => s.clear);
   const createOrder = useOrders((s) => s.create);
+  const applyPromo = usePromocodes((s) => s.apply);
+  const incrementUse = usePromocodes((s) => s.incrementUse);
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -34,8 +52,40 @@ function CheckoutPage() {
   const [privacyAccepted, setPrivacyAccepted] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const deliveryPrice = delivery === "courier" ? 990 : 490;
-  const grandTotal = total + deliveryPrice;
+  const [promoCode, setPromoCode] = useState("");
+  const [promoApplied, setPromoApplied] = useState<{ id: string; code: string; discount: number } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+
+  const selected = deliveryOptions.find((d) => d.id === delivery)!;
+  const deliveryPrice = selected.price;
+  const discount = promoApplied?.discount ?? 0;
+  const grandTotal = Math.max(0, total + deliveryPrice - discount);
+
+  const pvzMapUrl = useMemo(() => {
+    if (!selected.pvz || !city.trim()) return null;
+    const provider =
+      delivery === "ozon" ? "Ozon" : delivery === "boxberry" ? "Boxberry" : "СДЭК";
+    const query = encodeURIComponent(`Пункт выдачи ${provider} ${city}`);
+    return `https://yandex.ru/map-widget/v1/?text=${query}&z=12`;
+  }, [selected.pvz, city, delivery]);
+
+  function tryApplyPromo() {
+    setPromoError(null);
+    const res = applyPromo(promoCode, total);
+    if (!res.ok) {
+      setPromoError(res.reason);
+      setPromoApplied(null);
+      return;
+    }
+    setPromoApplied({ id: res.promo.id, code: res.promo.code, discount: res.discount });
+  }
+
+  function removePromo() {
+    setPromoApplied(null);
+    setPromoCode("");
+    setPromoError(null);
+  }
+
   const canSubmit =
     items.length > 0 &&
     name.trim() &&
@@ -50,8 +100,8 @@ function CheckoutPage() {
     e.preventDefault();
     if (!canSubmit || submitting) return;
     setSubmitting(true);
-    // Simulated payment gateway roundtrip
     await new Promise((r) => setTimeout(r, 800));
+    if (promoApplied) incrementUse(promoApplied.id);
     const order = createOrder({
       items,
       total: grandTotal,
@@ -102,18 +152,14 @@ function CheckoutPage() {
 
           <Block title="Доставка" step={2}>
             <div className="grid gap-3">
-              {[
-                { id: "cdek" as const, name: "СДЭК до ПВЗ", price: 490, icon: Package },
-                { id: "boxberry" as const, name: "Boxberry", price: 490, icon: Package },
-                { id: "courier" as const, name: "Курьер до двери", price: 990, icon: Truck },
-              ].map((d) => (
+              {deliveryOptions.map((d) => (
                 <label
                   key={d.id}
-                  className={`flex cursor-pointer items-center justify-between rounded-2xl border p-4 transition-colors ${
-                    delivery === d.id ? "border-foreground bg-secondary" : "border-hairline"
+                  className={`flex cursor-pointer items-start justify-between gap-4 rounded-2xl border p-4 transition-colors ${
+                    delivery === d.id ? "border-foreground bg-secondary" : "border-hairline hover:border-muted-foreground/40"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <input
                       type="radio"
                       name="delivery"
@@ -121,17 +167,51 @@ function CheckoutPage() {
                       checked={delivery === d.id}
                       onChange={() => setDelivery(d.id)}
                     />
-                    <d.icon className="h-4 w-4" />
-                    <span className="text-[14px] font-medium">{d.name}</span>
+                    <d.icon className="mt-0.5 h-4 w-4" />
+                    <div>
+                      <div className="text-[14px] font-medium">{d.name}</div>
+                      <div className="mt-0.5 text-[12px] text-muted-foreground">{d.hint}</div>
+                    </div>
                   </div>
-                  <span className="text-[13px] tabular-nums">{formatPrice(d.price)}</span>
+                  <span className="whitespace-nowrap text-[13px] tabular-nums">
+                    {formatPrice(d.price)}
+                  </span>
                 </label>
               ))}
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="Город" value={city} onChange={setCity} required />
-              <Field label="Адрес / ПВЗ" value={address} onChange={setAddress} required />
+              <Field
+                label={selected.pvz ? "Адрес ПВЗ" : "Адрес доставки"}
+                value={address}
+                onChange={setAddress}
+                required
+              />
             </div>
+            {pvzMapUrl && (
+              <div className="mt-4 overflow-hidden rounded-2xl border border-hairline">
+                <div className="flex items-center justify-between border-b border-hairline bg-surface px-4 py-2 text-[12px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Карта пунктов выдачи · {selected.name}
+                  </span>
+                  <a
+                    href={pvzMapUrl.replace("map-widget/v1", "maps")}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    Открыть на Яндекс.Картах
+                  </a>
+                </div>
+                <iframe
+                  title="Карта ПВЗ"
+                  src={pvzMapUrl}
+                  className="h-64 w-full"
+                  loading="lazy"
+                />
+              </div>
+            )}
           </Block>
 
           <Block title="Оплата" step={3}>
@@ -175,8 +255,7 @@ function CheckoutPage() {
                   <Link to="/legal/offer" className="underline">
                     публичной оферты
                   </Link>
-                  . Оформляя заказ, я заключаю договор купли-продажи с ООО «Садова»
-                  на условиях оферты (ст. 437, 438 ГК РФ).
+                  . Оформляя заказ, я заключаю договор купли-продажи с ООО «Садова» (ст. 437, 438 ГК РФ).
                 </span>
               </label>
               <label className="flex items-start gap-3">
@@ -189,7 +268,7 @@ function CheckoutPage() {
                 <span>
                   Даю согласие на обработку персональных данных согласно{" "}
                   <Link to="/legal/privacy" className="underline">
-                    152-ФЗ
+                    Политике обработки ПДн (152-ФЗ)
                   </Link>
                   .
                 </span>
@@ -219,6 +298,52 @@ function CheckoutPage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-4 border-t border-hairline pt-4">
+            <div className="mb-2 flex items-center gap-2 text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
+              <Tag className="h-3.5 w-3.5" /> Промокод
+            </div>
+            {promoApplied ? (
+              <div className="flex items-center justify-between rounded-xl bg-green-50 px-3 py-2 text-[13px]">
+                <span className="font-mono font-medium text-green-700">{promoApplied.code}</span>
+                <div className="flex items-center gap-2">
+                  <span className="tabular-nums text-green-700">
+                    −{formatPrice(promoApplied.discount)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={removePromo}
+                    className="rounded-full p-1 text-green-700 hover:bg-green-100"
+                    aria-label="Убрать промокод"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex gap-2">
+                  <input
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="SUMMER10"
+                    className="h-10 flex-1 rounded-full border border-hairline bg-background px-4 text-[13px] uppercase outline-none focus:border-foreground"
+                  />
+                  <button
+                    type="button"
+                    onClick={tryApplyPromo}
+                    className="rounded-full bg-foreground px-4 text-[12px] font-medium text-background"
+                  >
+                    Применить
+                  </button>
+                </div>
+                {promoError && (
+                  <div className="mt-2 text-[12px] text-red-600">{promoError}</div>
+                )}
+              </div>
+            )}
+          </div>
+
           <dl className="mt-4 space-y-2 border-t border-hairline pt-4 text-[13px]">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Товары</dt>
@@ -228,6 +353,12 @@ function CheckoutPage() {
               <dt className="text-muted-foreground">Доставка</dt>
               <dd className="tabular-nums">{formatPrice(deliveryPrice)}</dd>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-green-700">
+                <dt>Скидка по промокоду</dt>
+                <dd className="tabular-nums">−{formatPrice(discount)}</dd>
+              </div>
+            )}
           </dl>
           <div className="mt-4 flex items-baseline justify-between border-t border-hairline pt-4">
             <div className="text-[13px] text-muted-foreground">К оплате</div>
@@ -239,33 +370,26 @@ function CheckoutPage() {
             disabled={!canSubmit || submitting}
             className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[14px] font-medium text-background disabled:opacity-40"
           >
-            {submitting ? "Обработка…" : <>Оплатить {formatPrice(grandTotal)}</>}
+            {submitting ? "Обрабатываем…" : (
+              <>
+                <Check className="h-4 w-4" /> Оформить и оплатить
+              </>
+            )}
           </motion.button>
-          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-            После оплаты автоматически сформируем договор и отправим на {email || "ваш email"}.
-          </p>
         </aside>
       </form>
     </div>
   );
 }
 
-function Block({
-  title,
-  step,
-  children,
-}: {
-  title: string;
-  step: number;
-  children: React.ReactNode;
-}) {
+function Block({ title, step, children }: { title: string; step: number; children: React.ReactNode }) {
   return (
     <section>
       <div className="mb-4 flex items-center gap-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-hairline text-[12px] tabular-nums text-muted-foreground">
           {step}
-        </span>
-        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
+        </div>
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       </div>
       {children}
     </section>
@@ -287,17 +411,14 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[12px] font-medium text-muted-foreground">{label}</span>
+      <span className="mb-1.5 block text-[12px] text-muted-foreground">{label}</span>
       <input
-        type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        type={type}
         required={required}
-        className="h-11 w-full rounded-xl border border-hairline bg-background px-3 text-[14px] outline-none transition-colors focus:border-foreground"
+        onChange={(e) => onChange(e.target.value)}
+        className="h-11 w-full rounded-xl border border-hairline bg-background px-3 text-[14px] outline-none focus:border-foreground"
       />
     </label>
   );
 }
-
-// Success icon reference to satisfy tree-shaking hint
-export const _icons = { Check };

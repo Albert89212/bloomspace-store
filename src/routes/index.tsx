@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import hero from "@/assets/hero-chair.jpg";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/lib/products";
+import { useProducts } from "@/lib/products-store";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
+  const products = useProducts((s) => s.items);
   const featured = products.slice(0, 3);
   return (
     <>
@@ -99,11 +100,26 @@ function Index() {
             Весь каталог →
           </Link>
         </div>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((p, i) => (
-            <ProductCard key={p.id} product={p} index={i} />
-          ))}
-        </div>
+        {featured.length === 0 ? (
+          <div className="rounded-3xl border border-hairline bg-surface p-12 text-center">
+            <div className="text-[15px] font-medium">Скоро — первые модели</div>
+            <div className="mt-2 text-[13px] text-muted-foreground">
+              Каталог наполняется. Загляните позже или подпишитесь на нашу «Жизнь».
+            </div>
+            <Link
+              to="/life"
+              className="mt-6 inline-flex rounded-full bg-foreground px-5 py-2.5 text-[13px] font-medium text-background"
+            >
+              Смотреть «Жизнь»
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="border-t border-hairline bg-surface">

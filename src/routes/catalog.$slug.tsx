@@ -2,27 +2,19 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Star } from "lucide-react";
 import { useMemo, useState } from "react";
-import { findProduct, formatPrice, products, type Product } from "@/lib/products";
+import { formatPrice, type Product } from "@/lib/products";
+import { useProducts } from "@/lib/products-store";
 import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/components/ProductCard";
 import { Product3DViewer } from "@/components/Product3DViewer";
 import { useReviews } from "@/lib/reviews-store";
 
 export const Route = createFileRoute("/catalog/$slug")({
-  loader: ({ params }) => {
-    const product = findProduct(params.slug);
-    if (!product) throw notFound();
-    return { product };
-  },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.product.name} — SADOVA` },
-          { name: "description", content: loaderData.product.description },
-          { property: "og:title", content: `${loaderData.product.name} — SADOVA` },
-          { property: "og:description", content: loaderData.product.description },
-        ]
-      : [{ title: "Не найдено — SADOVA" }, { name: "robots", content: "noindex" }],
+  head: () => ({
+    meta: [
+      { title: "Товар — SADOVA" },
+      { name: "description", content: "Модель из каталога SADOVA." },
+    ],
   }),
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl px-6 py-24 text-center">
@@ -41,30 +33,42 @@ export const Route = createFileRoute("/catalog/$slug")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const products = useProducts((s) => s.items);
   const add = useCart((s) => s.add);
   const [added, setAdded] = useState(false);
   const [view, setView] = useState<"photo" | "3d">("photo");
   const allReviews = useReviews((s) => s.items);
   const addReview = useReviews((s) => s.add);
+  const product = products.find((p) => p.slug === slug);
   const productReviews = useMemo(
-    () => allReviews.filter((r) => r.productSlug === product.slug && r.approved),
-    [allReviews, product.slug],
+    () => allReviews.filter((r) => product && r.productSlug === product.slug && r.approved),
+    [allReviews, product],
   );
+  if (!product) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+        <h1 className="text-2xl font-semibold">Товар не найден</h1>
+        <Link to="/catalog" className="mt-4 inline-block text-[13px] underline">
+          Вернуться в каталог
+        </Link>
+      </div>
+    );
+  }
   const avgRating =
     productReviews.length > 0
       ? productReviews.reduce((n, r) => n + r.rating, 0) / productReviews.length
       : product.rating;
 
-  const related = products.filter((p) => p.id !== product.id).slice(0, 3);
+  const related = products.filter((p: Product) => p.id !== product.id).slice(0, 3);
 
   function handleAdd() {
     add({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      image: product.image,
+      id: product!.id,
+      slug: product!.slug,
+      name: product!.name,
+      price: product!.price,
+      image: product!.image,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
@@ -179,7 +183,7 @@ function ProductPage() {
       <section className="mx-auto max-w-7xl px-6 py-16">
         <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Похожие модели</h2>
         <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((p, i) => (
+          {related.map((p: Product, i: number) => (
             <ProductCard key={p.id} product={p} index={i} />
           ))}
         </div>
