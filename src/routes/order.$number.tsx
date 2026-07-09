@@ -53,7 +53,7 @@ function OrderPage() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16 md:py-24">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="flex justify-center"

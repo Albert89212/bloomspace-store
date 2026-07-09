@@ -91,7 +91,7 @@ const payment = [
 function DeliveryPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div initial={false} animate={{ opacity: 1, y: 0 }}>
         <div className="text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
           Условия
         </div>
@@ -112,7 +112,7 @@ function DeliveryPage() {
           {delivery.map((d, i) => (
             <motion.div
               key={d.title}
-              initial={{ opacity: 0, y: 12 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               className="group flex items-start gap-4 rounded-2xl border border-hairline bg-surface p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
@@ -151,7 +151,7 @@ function DeliveryPage() {
           {payment.map((p, i) => (
             <motion.div
               key={p.title}
-              initial={{ opacity: 0, y: 12 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
               className="group rounded-2xl border border-hairline bg-surface p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"

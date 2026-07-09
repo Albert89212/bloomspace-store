@@ -31,7 +31,7 @@ function LifePage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >

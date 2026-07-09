@@ -132,7 +132,7 @@ function CheckoutPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <motion.h1
-        initial={{ opacity: 0, y: 16 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-4xl font-semibold tracking-tight md:text-5xl"

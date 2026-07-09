@@ -30,7 +30,7 @@ export function PushBell() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <motion.div
-              initial={{ opacity: 0, y: -6 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               className="absolute right-0 top-11 z-50 w-80 overflow-hidden rounded-2xl border border-hairline bg-background shadow-xl"
