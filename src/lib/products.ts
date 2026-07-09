@@ -1,6 +1,13 @@
 // Types & helpers only. Products themselves live in `products-store.ts`
 // so they can be added/edited/deleted from the admin panel.
-export type Category = "chairs" | "tables" | "sofas" | "loungers" | "accessories";
+export type Category =
+  | "benches"
+  | "sides"
+  | "chairs"
+  | "tables"
+  | "sofas"
+  | "loungers"
+  | "accessories";
 
 export interface Product {
   id: string;
@@ -21,8 +28,10 @@ export interface Product {
 }
 
 export const categories: { id: Category; label: string }[] = [
-  { id: "chairs", label: "Кресла" },
+  { id: "benches", label: "Скамейки" },
+  { id: "sides", label: "Боковины для скамеек" },
   { id: "tables", label: "Столы" },
+  { id: "chairs", label: "Кресла" },
   { id: "sofas", label: "Диваны" },
   { id: "loungers", label: "Шезлонги" },
   { id: "accessories", label: "Аксессуары" },

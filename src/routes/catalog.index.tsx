@@ -9,10 +9,37 @@ import { useProducts } from "@/lib/products-store";
 export const Route = createFileRoute("/catalog/")({
   head: () => ({
     meta: [
-      { title: "Каталог — SADOVA" },
-      { name: "description", content: "Полный каталог садовой мебели SADOVA." },
-      { property: "og:title", content: "Каталог — SADOVA" },
-      { property: "og:description", content: "Полный каталог садовой мебели SADOVA." },
+      { title: "Каталог садовой мебели: скамейки, столы, боковины — SADOVA" },
+      {
+        name: "description",
+        content:
+          "Скамейки, боковины для скамеек, садовые столы, кресла и шезлонги из тика и стали. Доставка СДЭК, Boxberry, Почта России, ПВЗ Ozon по всей РФ.",
+      },
+      {
+        name: "keywords",
+        content:
+          "садовая мебель, скамейки, боковины для скамеек, чугунные боковины, садовые столы, купить скамейку, мебель для дачи",
+      },
+      { property: "og:title", content: "Каталог садовой мебели SADOVA" },
+      {
+        property: "og:description",
+        content: "Скамейки, боковины, садовые столы и кресла из тика и стали.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "/catalog" },
+    ],
+    links: [{ rel: "canonical", href: "/catalog" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Каталог садовой мебели SADOVA",
+          description:
+            "Скамейки, боковины для скамеек, столы, кресла и шезлонги для сада и дачи.",
+        }),
+      },
     ],
   }),
   component: CatalogPage,
@@ -91,6 +118,8 @@ function CatalogPage() {
 }
 
 const catColor: Record<string, string> = {
+  benches: "var(--brand)",
+  sides: "var(--accent-cool)",
   chairs: "var(--brand)",
   tables: "var(--accent-warm)",
   sofas: "var(--accent-cool)",
