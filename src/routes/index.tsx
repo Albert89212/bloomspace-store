@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import hero from "@/assets/hero-chair.jpg";
 import { ProductCard } from "@/components/ProductCard";
-import { products } from "@/lib/products";
+import { useProducts } from "@/lib/products-store";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
+  const products = useProducts((s) => s.items);
   const featured = products.slice(0, 3);
   return (
     <>
