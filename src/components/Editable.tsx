@@ -40,7 +40,7 @@ export function EditableText({
     }
   }, [editing, value]);
 
-  const T = Tag as React.ElementType;
+  const T: any = Tag;
 
   if (!canEdit) {
     return <T className={className} style={style}>{value}</T>;
