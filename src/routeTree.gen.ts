@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
+import { Route as GiftRouteImport } from './routes/gift'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as B2bRouteImport } from './routes/b2b'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -26,6 +29,7 @@ import { Route as LegalRulesRouteImport } from './routes/legal.rules'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -45,6 +49,11 @@ const LifeRoute = LifeRouteImport.update({
   path: '/life',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GiftRoute = GiftRouteImport.update({
+  id: '/gift',
+  path: '/gift',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeliveryRoute = DeliveryRouteImport.update({
   id: '/delivery',
   path: '/delivery',
@@ -58,6 +67,16 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const B2bRoute = B2bRouteImport.update({
+  id: '/b2b',
+  path: '/b2b',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -120,6 +139,11 @@ const CatalogSlugRoute = CatalogSlugRouteImport.update({
   path: '/catalog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
+} as any)
 const AdminTicketsRoute = AdminTicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
@@ -166,9 +190,12 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/b2b': typeof B2bRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
+  '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/chats': typeof AdminChatsRoute
@@ -179,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -192,9 +220,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/b2b': typeof B2bRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
+  '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/chats': typeof AdminChatsRoute
@@ -205,6 +236,7 @@ export interface FileRoutesByTo {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -220,9 +252,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/b2b': typeof B2bRoute
+  '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
+  '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
   '/admin/chats': typeof AdminChatsRoute
@@ -233,6 +268,7 @@ export interface FileRoutesById {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -249,9 +285,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
+    | '/b2b'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/delivery'
+    | '/gift'
     | '/life'
     | '/support'
     | '/admin/chats'
@@ -262,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
@@ -275,9 +315,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/b2b'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/delivery'
+    | '/gift'
     | '/life'
     | '/support'
     | '/admin/chats'
@@ -288,6 +331,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
@@ -302,9 +346,12 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/auth'
+    | '/b2b'
+    | '/blog'
     | '/cart'
     | '/checkout'
     | '/delivery'
+    | '/gift'
     | '/life'
     | '/support'
     | '/admin/chats'
@@ -315,6 +362,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
@@ -330,9 +378,12 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  B2bRoute: typeof B2bRoute
+  BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   DeliveryRoute: typeof DeliveryRoute
+  GiftRoute: typeof GiftRoute
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
@@ -360,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LifeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gift': {
+      id: '/gift'
+      path: '/gift'
+      fullPath: '/gift'
+      preLoaderRoute: typeof GiftRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/delivery': {
       id: '/delivery'
       path: '/delivery'
@@ -379,6 +437,20 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/b2b': {
+      id: '/b2b'
+      path: '/b2b'
+      fullPath: '/b2b'
+      preLoaderRoute: typeof B2bRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -465,6 +537,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
     '/admin/tickets': {
       id: '/admin/tickets'
       path: '/tickets'
@@ -550,14 +629,27 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  B2bRoute: B2bRoute,
+  BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   DeliveryRoute: DeliveryRoute,
+  GiftRoute: GiftRoute,
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
   CatalogSlugRoute: CatalogSlugRoute,
