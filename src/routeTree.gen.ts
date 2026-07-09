@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
@@ -17,8 +18,16 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as OrderNumberRouteImport } from './routes/order.$number'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LifeRoute = LifeRouteImport.update({
   id: '/life',
   path: '/life',
@@ -59,6 +68,21 @@ const OrderNumberRoute = OrderNumberRouteImport.update({
   path: '/order/$number',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalOfferRoute = LegalOfferRouteImport.update({
+  id: '/legal/offer',
+  path: '/legal/offer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogSlugRoute = CatalogSlugRouteImport.update({
   id: '/catalog/$slug',
   path: '/catalog/$slug',
@@ -72,7 +96,11 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
+  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/offer': typeof LegalOfferRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog/': typeof CatalogIndexRoute
 }
@@ -83,7 +111,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
+  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/offer': typeof LegalOfferRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog': typeof CatalogIndexRoute
 }
@@ -95,7 +127,11 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
+  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/offer': typeof LegalOfferRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog/': typeof CatalogIndexRoute
 }
@@ -108,7 +144,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
+    | '/support'
     | '/catalog/$slug'
+    | '/legal/offer'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/order/$number'
     | '/catalog/'
   fileRoutesByTo: FileRoutesByTo
@@ -119,7 +159,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
+    | '/support'
     | '/catalog/$slug'
+    | '/legal/offer'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/order/$number'
     | '/catalog'
   id:
@@ -130,7 +174,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
+    | '/support'
     | '/catalog/$slug'
+    | '/legal/offer'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/order/$number'
     | '/catalog/'
   fileRoutesById: FileRoutesById
@@ -142,13 +190,24 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   LifeRoute: typeof LifeRoute
+  SupportRoute: typeof SupportRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
+  LegalOfferRoute: typeof LegalOfferRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   OrderNumberRoute: typeof OrderNumberRoute
   CatalogIndexRoute: typeof CatalogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/life': {
       id: '/life'
       path: '/life'
@@ -205,6 +264,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrderNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/offer': {
+      id: '/legal/offer'
+      path: '/legal/offer'
+      fullPath: '/legal/offer'
+      preLoaderRoute: typeof LegalOfferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalog/$slug': {
       id: '/catalog/$slug'
       path: '/catalog/$slug'
@@ -222,7 +302,11 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   LifeRoute: LifeRoute,
+  SupportRoute: SupportRoute,
   CatalogSlugRoute: CatalogSlugRoute,
+  LegalOfferRoute: LegalOfferRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   OrderNumberRoute: OrderNumberRoute,
   CatalogIndexRoute: CatalogIndexRoute,
 }
