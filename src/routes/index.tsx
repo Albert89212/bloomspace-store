@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Leaf, ShieldCheck, Truck, Sparkles } from "lucide-react";
-import hero from "@/assets/hero-chair.jpg";
+import { ArrowRight, Leaf, ShieldCheck, Truck, Sparkles, Star } from "lucide-react";
+import hero from "@/assets/hero-bench.jpg";
+import sofaImg from "@/assets/product-sofa.jpg";
+import loungerImg from "@/assets/product-lounger.jpg";
+import tableImg from "@/assets/product-table.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/lib/products-store";
-import { Product3DViewer } from "@/components/Product3DViewer";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,93 +18,215 @@ function Index() {
   const featured = products.slice(0, 3);
   return (
     <>
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(1200px 600px at 85% 10%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 60%), radial-gradient(900px 500px at 5% 90%, color-mix(in oklab, var(--accent-warm) 18%, transparent), transparent 60%), var(--surface)",
-          }}
-        />
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full blur-3xl -z-10"
-          style={{ background: "color-mix(in oklab, var(--accent-cool) 45%, transparent)" }}
-          animate={{ y: [0, 20, 0], x: [0, 10, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -bottom-24 h-96 w-96 rounded-full blur-3xl -z-10"
-          style={{ background: "color-mix(in oklab, var(--brand) 40%, transparent)" }}
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 pb-16 pt-16 md:grid-cols-2 md:gap-6 md:py-28">
-          <div className="max-w-xl">
+      {/* HERO — editorial full-bleed image with copy overlay */}
+      <section className="relative">
+        <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-6">
+          <div className="relative overflow-hidden rounded-[28px] sm:rounded-[36px]">
+            <img
+              src={hero}
+              alt="Скамейка SADOVA — тик и матовая сталь в саду"
+              width={1600}
+              height={1808}
+              fetchPriority="high"
+              className="h-[78vh] min-h-[560px] w-full object-cover sm:h-[82vh]"
+            />
+            {/* Gradient scrim for legibility */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(10,12,10,0.55) 0%, rgba(10,12,10,0.15) 30%, rgba(10,12,10,0.05) 55%, rgba(10,12,10,0.75) 100%)",
+              }}
+            />
+            {/* Warm colour wash bottom-right */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full blur-3xl"
+              style={{ background: "color-mix(in oklab, var(--accent-warm) 60%, transparent)" }}
+            />
+
+            {/* Top row — eyebrow & badge */}
+            <div className="absolute inset-x-0 top-0 flex items-start justify-between p-5 sm:p-8">
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-white backdrop-blur-md"
+              >
+                <Leaf className="h-3.5 w-3.5" />
+                Коллекция 2026
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md sm:inline-flex"
+              >
+                <Star className="h-3 w-3 fill-white" />
+                4.9 · 320+ садов по России
+              </motion.div>
+            </div>
+
+            {/* Bottom copy block */}
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-10 md:p-14">
+              <div className="max-w-3xl text-white">
+                <motion.h1
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[40px] font-semibold leading-[0.98] tracking-tight sm:text-6xl md:text-[88px]"
+                >
+                  Сад,{" "}
+                  <span
+                    className="italic"
+                    style={{
+                      background:
+                        "linear-gradient(120deg, #f4d9a8, #e6b17a 60%, #d29566)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    в&nbsp;котором
+                  </span>
+                  <br />
+                  хочется остаться.
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.15 }}
+                  className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/85 sm:text-[17px]"
+                >
+                  Скамейки, кресла и лаунж из тика, алюминия и HPL-камня. Выдерживают
+                  российскую погоду — от +40 до −30.
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.25 }}
+                  className="mt-7 flex flex-wrap items-center gap-3"
+                >
+                  <Link
+                    to="/catalog"
+                    className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-[14px] font-medium text-black shadow-2xl transition-transform active:scale-[0.97]"
+                  >
+                    Смотреть каталог
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                  <Link
+                    to="/life"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/5 px-6 py-3.5 text-[14px] font-medium text-white backdrop-blur-md transition-colors hover:bg-white/15"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Жизнь магазина
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Ticker strip */}
+        <div className="mt-6 border-y border-hairline bg-surface">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-3 text-[12px] text-muted-foreground sm:text-[13px]">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--brand)" }} />
+              Отгрузка 1–2 дня
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent-warm)" }} />
+              Гарантия до 10 лет
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent-cool)" }} />
+              СДЭК · Ozon · Почта России
+            </span>
+            <span className="hidden md:inline-flex items-center gap-2">Оплата: СБП, карта, ЮKassa</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Collections mosaic */}
+      <section className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+        <div className="mb-8 flex items-end justify-between gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Категории
+            </div>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight md:text-5xl">
+              Что вам подходит
+            </h2>
+          </motion.div>
+          <Link
+            to="/catalog"
+            className="hidden text-[13px] text-muted-foreground transition-colors hover:text-foreground sm:inline"
+          >
+            Весь каталог →
+          </Link>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3 md:grid-rows-2">
+          <CollectionTile
+            className="md:row-span-2"
+            image={hero}
+            title="Скамейки"
+            subtitle="Тик · Сталь"
+            accent="var(--accent-warm)"
+            to="/catalog"
+            tall
+          />
+          <CollectionTile
+            image={sofaImg}
+            title="Диваны и лаунж"
+            subtitle="Модульные системы"
+            accent="var(--accent-cool)"
+            to="/catalog"
+          />
+          <CollectionTile
+            image={tableImg}
+            title="Столы"
+            subtitle="HPL · Массив"
+            accent="var(--brand)"
+            to="/catalog"
+          />
+          <CollectionTile
+            image={loungerImg}
+            title="Шезлонги"
+            subtitle="Для террас и бассейнов"
+            accent="var(--accent-warm)"
+            to="/catalog"
+            wide
+          />
+        </div>
+      </section>
+
+      {/* Editorial split — brand story */}
+      <section className="mx-auto max-w-7xl px-6 pb-20">
+        <div className="grid gap-10 rounded-[28px] border border-hairline bg-surface p-6 sm:p-10 md:grid-cols-2 md:gap-14 md:p-14">
+          <div>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="inline-flex items-center gap-2 rounded-full border border-hairline bg-background/60 px-3 py-1 text-[12px] font-medium uppercase tracking-[0.14em] backdrop-blur"
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground"
             >
-              <Leaf className="h-3.5 w-3.5" style={{ color: "var(--brand)" }} />
-              Коллекция 2026 · Сад под ключ
+              О бренде
             </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-4 text-[42px] font-semibold leading-[1.02] tracking-tight sm:text-5xl md:text-7xl"
-            >
-              Скамейки,{" "}
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(120deg, var(--brand), var(--accent-cool))",
-                }}
-              >
-                кресла
-              </span>{" "}
-              и&nbsp;лаунж<br />для сада мечты.
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-6 max-w-md text-[16px] leading-relaxed text-muted-foreground md:text-[17px]"
-            >
-              Мебель, которая живёт под открытым небом столько же, сколько ваш сад. Материалы,
-              выдерживающие всё — от солнца до снега.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 flex flex-wrap items-center gap-3"
-            >
-              <Link
-                to="/catalog"
-                className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-medium text-background shadow-lg transition-transform active:scale-[0.97]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--brand), color-mix(in oklab, var(--brand) 70%, black))",
-                }}
-              >
-                Смотреть каталог
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                to="/life"
-                className="inline-flex items-center gap-2 rounded-full border border-hairline px-6 py-3 text-[14px] font-medium transition-colors hover:bg-secondary"
-              >
-                <Sparkles className="h-4 w-4" style={{ color: "var(--accent-warm)" }} />
-                Жизнь магазина
-              </Link>
-            </motion.div>
-            <div className="mt-8 flex flex-wrap gap-2">
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
+              Не мебель.<br />Долгий разговор с&nbsp;садом.
+            </h2>
+            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground md:text-[16px]">
+              Мы делаем предметы, которые становятся частью пейзажа. Каждая скамейка
+              собирается вручную из тика класса «А» и порошково окрашенной стали —
+              материалов, которые с годами становятся только красивее.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2">
               {[
                 { label: "Тик", color: "var(--accent-warm)" },
                 { label: "Алюминий", color: "var(--accent-cool)" },
@@ -111,55 +235,46 @@ function Index() {
               ].map((m) => (
                 <span
                   key={m.label}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-background/60 px-3 py-1 text-[12px] backdrop-blur"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-background px-3 py-1 text-[12px]"
                 >
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: m.color }}
-                  />
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
                   {m.label}
                 </span>
               ))}
             </div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="relative order-first md:order-last"
-          >
-            <div className="relative">
-              <img
-                src={hero}
-                alt="Кресло Aero Lounge"
-                width={1600}
-                height={1200}
-                loading="eager"
-                className="w-full object-contain drop-shadow-2xl"
-              />
+          <div className="grid grid-cols-3 gap-4 self-center text-center sm:gap-6">
+            {[
+              { n: "10", u: "лет гарантии" },
+              { n: "320+", u: "садов в РФ" },
+              { n: "48ч", u: "отгрузка" },
+            ].map((s, i) => (
               <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="absolute bottom-4 left-4 hidden items-center gap-2 rounded-full border border-hairline bg-background/80 px-3 py-1.5 text-[12px] backdrop-blur sm:inline-flex"
+                key={s.u}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="rounded-3xl border border-hairline bg-background p-4 sm:p-6"
               >
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--brand)" }} />
-                В наличии · отгрузка 1–2 дня
+                <div className="text-3xl font-semibold tracking-tight sm:text-5xl">{s.n}</div>
+                <div className="mt-1 text-[11px] uppercase tracking-widest text-muted-foreground sm:text-[12px]">
+                  {s.u}
+                </div>
               </motion.div>
-            </div>
-          </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-20 md:py-24">
+      <section className="mx-auto max-w-7xl px-6 pb-20 md:pb-24">
         <div className="mb-10 flex items-end justify-between">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl"
+            className="text-3xl font-semibold tracking-tight md:text-5xl"
           >
             Избранное
           </motion.h2>
@@ -190,30 +305,6 @@ function Index() {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 pb-20 md:pb-24">
-        <div className="grid gap-6 md:grid-cols-[1.1fr_1fr] md:items-center">
-          <div>
-            <div className="text-[13px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              3D-конфигуратор
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
-              Крутите. Смотрите со всех сторон.
-            </h2>
-            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-              Каждая модель — интерактивная 3D-сцена: выбирайте цвет каркаса и обивки,
-              рассматривайте текстуру металла и дерева, прежде чем оформить заказ.
-            </p>
-            <Link
-              to="/catalog"
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-hairline px-5 py-2.5 text-[13px] font-medium hover:bg-secondary"
-            >
-              Выбрать модель <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <Product3DViewer />
-        </div>
       </section>
 
       <section className="border-t border-hairline bg-surface">
@@ -262,5 +353,79 @@ function Index() {
         </div>
       </section>
     </>
+  );
+}
+
+function CollectionTile({
+  image,
+  title,
+  subtitle,
+  accent,
+  to,
+  tall,
+  wide,
+  className,
+}: {
+  image: string;
+  title: string;
+  subtitle: string;
+  accent: string;
+  to: string;
+  tall?: boolean;
+  wide?: boolean;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6 }}
+      whileHover={{ y: -3 }}
+      className={className}
+    >
+      <Link
+        to={to}
+        className={`group relative block h-full overflow-hidden rounded-3xl bg-surface ${
+          tall ? "min-h-[420px] md:min-h-full" : wide ? "min-h-[220px] md:col-span-2" : "min-h-[220px]"
+        }`}
+      >
+        <img
+          src={image}
+          alt={title}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background: `radial-gradient(80% 60% at 50% 100%, color-mix(in oklab, ${accent} 55%, transparent), transparent 70%)`,
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white sm:p-6">
+          <div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/75">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accent }} />
+              {subtitle}
+            </div>
+            <div className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
+              {title}
+            </div>
+          </div>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur-md transition-transform group-hover:translate-x-1">
+            <ArrowRight className="h-4 w-4" />
+          </div>
+        </div>
+      </Link>
+    </motion.div>
   );
 }
