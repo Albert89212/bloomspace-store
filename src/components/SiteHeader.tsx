@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, ShoppingBag, User } from "lucide-react";
 import { useCart, selectCartCount } from "@/lib/cart-store";
 import { useAdmin } from "@/lib/admin-store";
+import { PushBell } from "./PushBell";
+import { useCurrentUser } from "@/lib/auth-store";
 
 const nav = [
   { to: "/", label: "Главная" },
   { to: "/catalog", label: "Каталог" },
   { to: "/life", label: "Жизнь магазина" },
+  { to: "/blog", label: "Блог" },
   { to: "/about", label: "О бренде" },
   { to: "/support", label: "Поддержка" },
 ] as const;
@@ -15,6 +18,7 @@ const nav = [
 export function SiteHeader() {
   const count = useCart(selectCartCount);
   const isAdmin = useAdmin((s) => s.isAdmin);
+  const user = useCurrentUser();
 
   return (
     <header className="glass sticky top-0 z-50">
@@ -37,6 +41,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
+          {user && <PushBell />}
           {isAdmin && (
             <Link
               to="/admin"
