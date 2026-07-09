@@ -40,6 +40,7 @@ export function SiteFooter() {
             title="Информация"
             links={[
               { to: "/delivery", label: "Доставка и оплата" },
+              { to: "/legal/rules", label: "Правила магазина" },
               { to: "/support", label: "Поддержка" },
               { to: "/about", label: "О бренде" },
             ]}
