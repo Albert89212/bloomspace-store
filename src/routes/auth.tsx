@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { LogOut, Sparkles, Mail, ShieldCheck } from "lucide-react";
+import { Copy, LogOut, Sparkles, Mail, ShieldCheck } from "lucide-react";
 import { useAuth, useCurrentUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/auth")({
