@@ -20,7 +20,7 @@ export function EditableText({
 }: {
   id: string;
   defaultValue: string;
-  as?: keyof React.JSX.IntrinsicElements;
+  as?: React.ElementType;
   multiline?: boolean;
   className?: string;
   style?: React.CSSProperties;
