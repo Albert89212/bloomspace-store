@@ -6,6 +6,7 @@ import { useCart, selectCartCount } from "@/lib/cart-store";
 const nav = [
   { to: "/", label: "Главная" },
   { to: "/catalog", label: "Каталог" },
+  { to: "/life", label: "Жизнь магазина" },
   { to: "/about", label: "О бренде" },
   { to: "/support", label: "Поддержка" },
 ] as const;

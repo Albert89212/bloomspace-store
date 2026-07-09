@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Send, Youtube, Instagram } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -10,11 +11,26 @@ export function SiteFooter() {
             <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-muted-foreground">
               Премиальная садовая мебель. Разработано в Москве, произведено в России.
             </p>
+            <div className="mt-5 flex items-center gap-2">
+              <SocialLink href="https://t.me/sadova" label="Telegram">
+                <Send className="h-4 w-4" />
+              </SocialLink>
+              <SocialLink href="https://vk.com/sadova" label="ВКонтакте">
+                <span className="text-[11px] font-bold">VK</span>
+              </SocialLink>
+              <SocialLink href="https://youtube.com/@sadova" label="YouTube">
+                <Youtube className="h-4 w-4" />
+              </SocialLink>
+              <SocialLink href="https://instagram.com/sadova" label="Instagram">
+                <Instagram className="h-4 w-4" />
+              </SocialLink>
+            </div>
           </div>
           <FooterCol
             title="Магазин"
             links={[
               { to: "/catalog", label: "Каталог" },
+              { to: "/life", label: "Жизнь магазина" },
               { to: "/cart", label: "Корзина" },
               { to: "/auth", label: "Аккаунт" },
             ]}
@@ -37,11 +53,42 @@ export function SiteFooter() {
           />
         </div>
         <div className="mt-12 flex flex-col justify-between gap-2 border-t border-hairline pt-6 text-[12px] text-muted-foreground md:flex-row">
-          <div>© {new Date().getFullYear()} SADOVA. Все права защищены.</div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-3 w-4 overflow-hidden rounded-[2px] border border-hairline">
+              <span className="flex h-full w-full flex-col">
+                <span className="h-1/3 bg-white" />
+                <span className="h-1/3 bg-[#0039A6]" />
+                <span className="h-1/3 bg-[#D52B1E]" />
+              </span>
+            </span>
+            © {new Date().getFullYear()} SADOVA. Сделано в России.
+          </div>
           <div>ИП / ООО «Садова». ИНН 0000000000</div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function SocialLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+    >
+      {children}
+    </a>
   );
 }
 
