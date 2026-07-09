@@ -59,9 +59,11 @@ export const useAuth = create<AuthState>()(
         if (password.length < 6) return { ok: false, error: "Пароль минимум 6 символов" };
         if (get().users.some((u) => u.email === email))
           return { ok: false, error: "Email уже зарегистрирован" };
-        const referrer =
-          referralCode &&
-          get().users.find((u) => u.referralCode.toUpperCase() === referralCode.toUpperCase());
+        const referrer = referralCode
+          ? get().users.find(
+              (u) => u.referralCode.toUpperCase() === referralCode.toUpperCase(),
+            )
+          : undefined;
         const user: AppUser = {
           id: crypto.randomUUID(),
           name: name.trim(),
