@@ -23,10 +23,10 @@ export const roleLabel: Record<StaffRole, string> = {
 
 // Access matrix — what each role can open in the admin panel.
 export const rolePermissions: Record<StaffRole, string[]> = {
-  owner: ["overview", "products", "orders", "reviews", "tickets", "life", "promocodes", "staff"],
-  admin: ["overview", "products", "orders", "reviews", "tickets", "life", "promocodes"],
-  moderator: ["overview", "reviews", "tickets", "life"],
-  support: ["overview", "tickets", "orders"],
+  owner: ["overview", "products", "orders", "reviews", "tickets", "chats", "life", "promocodes", "staff"],
+  admin: ["overview", "products", "orders", "reviews", "tickets", "chats", "life", "promocodes"],
+  moderator: ["overview", "reviews", "tickets", "chats", "life"],
+  support: ["overview", "tickets", "orders", "chats"],
 };
 
 interface AdminState {

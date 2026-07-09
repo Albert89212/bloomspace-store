@@ -40,6 +40,7 @@ export function SiteFooter() {
             title="Информация"
             links={[
               { to: "/delivery", label: "Доставка и оплата" },
+              { to: "/legal/rules", label: "Правила магазина" },
               { to: "/support", label: "Поддержка" },
               { to: "/about", label: "О бренде" },
             ]}
@@ -54,22 +55,18 @@ export function SiteFooter() {
           />
         </div>
         <div className="mt-12 space-y-4 border-t border-hairline pt-6 text-[12px] text-muted-foreground">
-          <div className="grid gap-2 md:grid-cols-2">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="font-medium text-foreground">{company.legalName}</div>
               <div className="mt-1">ИНН {company.inn} · ОГРНИП {company.ogrnip}</div>
-              <div className="mt-1">{company.address}</div>
             </div>
-            <div className="md:text-right">
-              <div>Р/с {company.account}</div>
-              <div>{company.bank}</div>
-              <div>БИК {company.bik} · К/с {company.corrAccount}</div>
-              <div className="mt-1">
-                <a href={`mailto:${company.supportEmail}`} className="underline">
-                  {company.supportEmail}
-                </a>
-              </div>
-            </div>
+            <a href={`mailto:${company.supportEmail}`} className="underline">
+              {company.supportEmail}
+            </a>
+          </div>
+          <div className="text-[11px]">
+            Полные банковские реквизиты — в{" "}
+            <Link to="/legal/offer" className="underline">публичной оферте</Link>.
           </div>
           <div className="flex items-center gap-2 border-t border-hairline pt-4">
             <span className="inline-flex h-3 w-4 overflow-hidden rounded-[2px] border border-hairline">

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
+import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -21,6 +22,7 @@ import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as OrderNumberRouteImport } from './routes/order.$number'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalRulesRouteImport } from './routes/legal.rules'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
@@ -31,6 +33,7 @@ import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
+import { Route as AdminChatsRouteImport } from './routes/admin.chats'
 
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
@@ -40,6 +43,11 @@ const SupportRoute = SupportRouteImport.update({
 const LifeRoute = LifeRouteImport.update({
   id: '/life',
   path: '/life',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeliveryRoute = DeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -92,6 +100,11 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalRulesRoute = LegalRulesRouteImport.update({
+  id: '/legal/rules',
+  path: '/legal/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
@@ -142,6 +155,11 @@ const AdminLifeRoute = AdminLifeRouteImport.update({
   path: '/life',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminChatsRoute = AdminChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,8 +168,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/delivery': typeof DeliveryRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -162,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/admin/': typeof AdminIndexRoute
@@ -173,8 +194,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/delivery': typeof DeliveryRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -185,6 +208,7 @@ export interface FileRoutesByTo {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/admin': typeof AdminIndexRoute
@@ -198,8 +222,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/delivery': typeof DeliveryRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
@@ -210,6 +236,7 @@ export interface FileRoutesById {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
   '/admin/': typeof AdminIndexRoute
@@ -224,8 +251,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/delivery'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -236,6 +265,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
     | '/admin/'
@@ -247,8 +277,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/delivery'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -259,6 +291,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
     | '/admin'
@@ -271,8 +304,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/delivery'
     | '/life'
     | '/support'
+    | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
     | '/admin/products'
@@ -283,6 +318,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
     | '/admin/'
@@ -296,11 +332,13 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  DeliveryRoute: typeof DeliveryRoute
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalRulesRoute: typeof LegalRulesRoute
   LegalTermsRoute: typeof LegalTermsRoute
   OrderNumberRoute: typeof OrderNumberRoute
   CatalogIndexRoute: typeof CatalogIndexRoute
@@ -320,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: '/life'
       fullPath: '/life'
       preLoaderRoute: typeof LifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delivery': {
+      id: '/delivery'
+      path: '/delivery'
+      fullPath: '/delivery'
+      preLoaderRoute: typeof DeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -392,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/rules': {
+      id: '/legal/rules'
+      path: '/legal/rules'
+      fullPath: '/legal/rules'
+      preLoaderRoute: typeof LegalRulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/privacy': {
       id: '/legal/privacy'
       path: '/legal/privacy'
@@ -462,10 +514,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLifeRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/chats': {
+      id: '/admin/chats'
+      path: '/chats'
+      fullPath: '/admin/chats'
+      preLoaderRoute: typeof AdminChatsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminChatsRoute: typeof AdminChatsRoute
   AdminLifeRoute: typeof AdminLifeRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -477,6 +537,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminChatsRoute: AdminChatsRoute,
   AdminLifeRoute: AdminLifeRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
@@ -496,11 +557,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  DeliveryRoute: DeliveryRoute,
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
   CatalogSlugRoute: CatalogSlugRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalRulesRoute: LegalRulesRoute,
   LegalTermsRoute: LegalTermsRoute,
   OrderNumberRoute: OrderNumberRoute,
   CatalogIndexRoute: CatalogIndexRoute,

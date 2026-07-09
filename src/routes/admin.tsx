@@ -20,6 +20,7 @@ const tabs: { to: string; label: string; perm: string }[] = [
   { to: "/admin/orders", label: "Заказы", perm: "orders" },
   { to: "/admin/reviews", label: "Отзывы", perm: "reviews" },
   { to: "/admin/tickets", label: "Тикеты", perm: "tickets" },
+  { to: "/admin/chats", label: "Чаты заказов", perm: "chats" },
   { to: "/admin/life", label: "Жизнь", perm: "life" },
   { to: "/admin/staff", label: "Должности", perm: "staff" },
 ];
