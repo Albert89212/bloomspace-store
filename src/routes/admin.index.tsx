@@ -3,7 +3,9 @@ import { useOrders } from "@/lib/orders-store";
 import { useReviews } from "@/lib/reviews-store";
 import { useTickets } from "@/lib/tickets-store";
 import { useLifePosts } from "@/lib/life-posts-store";
-import { products, formatPrice } from "@/lib/products";
+import { useProducts } from "@/lib/products-store";
+import { usePromocodes } from "@/lib/promocodes-store";
+import { formatPrice } from "@/lib/products";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminOverview,
@@ -11,6 +13,8 @@ export const Route = createFileRoute("/admin/")({
 
 function AdminOverview() {
   const orders = useOrders((s) => s.items);
+  const products = useProducts((s) => s.items);
+  const promos = usePromocodes((s) => s.items);
   const reviews = useReviews((s) => s.items);
   const tickets = useTickets((s) => s.items);
   const posts = useLifePosts((s) => s.items);
@@ -23,6 +27,7 @@ function AdminOverview() {
     { label: "Заказов", value: orders.length },
     { label: "Выручка", value: formatPrice(revenue) },
     { label: "Товаров", value: products.length },
+    { label: "Промокодов", value: promos.length },
     { label: "Отзывов на модерации", value: pendingReviews },
     { label: "Открытых тикетов", value: openTickets },
     { label: "Постов «Жизнь»", value: posts.length },
