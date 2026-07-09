@@ -17,6 +17,7 @@ import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
+import { SupportChatWidget } from "../components/SupportChatWidget";
 
 function NotFoundComponent() {
   return (
@@ -97,6 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -130,6 +132,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <SiteFooter />
+        <SupportChatWidget />
       </div>
     </QueryClientProvider>
   );
