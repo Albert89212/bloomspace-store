@@ -10,6 +10,7 @@ import { Product3DViewer } from "@/components/Product3DViewer";
 import { useReviews } from "@/lib/reviews-store";
 import { useCurrentUser } from "@/lib/auth-store";
 import { useOrders } from "@/lib/orders-store";
+import { company } from "@/lib/company";
 
 export const Route = createFileRoute("/catalog/$slug")({
   head: () => ({
@@ -64,6 +65,30 @@ function ProductPage() {
 
   const related = products.filter((p: Product) => p.id !== product.id).slice(0, 3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: [product.image],
+    brand: { "@type": "Brand", name: "SADOVA" },
+    aggregateRating:
+      productReviews.length > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: productReviews.length,
+          }
+        : undefined,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "RUB",
+      price: product.price,
+      availability: "https://schema.org/InStock",
+      seller: { "@type": "Organization", name: company.legalName },
+    },
+  };
+
   function handleAdd() {
     add({
       id: product!.id,
@@ -78,6 +103,11 @@ function ProductPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="mx-auto max-w-7xl px-6 pt-8">
         <Link
           to="/catalog"
