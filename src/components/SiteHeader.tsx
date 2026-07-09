@@ -30,6 +30,7 @@ export function SiteHeader() {
   }, [open]);
 
   return (
+    <>
     <header className="glass sticky top-0 z-50">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight">
@@ -107,8 +108,9 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
+    </header>
 
-      <AnimatePresence>
+    <AnimatePresence>
         {open && (
           <>
             <motion.div
@@ -169,7 +171,7 @@ export function SiteHeader() {
             </motion.aside>
           </>
         )}
-      </AnimatePresence>
-    </header>
+    </AnimatePresence>
+    </>
   );
 }
