@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { formatPrice, type Product } from "@/lib/products";
 
 const catAccent: Record<string, string> = {
+  benches: "var(--brand)",
+  sides: "var(--accent-cool)",
   chairs: "var(--brand)",
   tables: "var(--accent-warm)",
   sofas: "var(--accent-cool)",
@@ -10,6 +12,8 @@ const catAccent: Record<string, string> = {
   accessories: "var(--accent-warm)",
 };
 const catLabel: Record<string, string> = {
+  benches: "Скамейка",
+  sides: "Боковина",
   chairs: "Кресло",
   tables: "Стол",
   sofas: "Диван",
