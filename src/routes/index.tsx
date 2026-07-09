@@ -8,6 +8,7 @@ import loungerImg from "@/assets/product-lounger.jpg";
 import tableImg from "@/assets/product-table.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { useProducts } from "@/lib/products-store";
+import { EditableText, EditableMedia } from "@/components/Editable";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -22,14 +23,15 @@ function Index() {
       <section className="relative">
         <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-6">
           <div className="relative overflow-hidden rounded-[28px] sm:rounded-[36px]">
-            <img
-              src={hero}
-              alt="Скамейка SADOVA — тик и матовая сталь в саду"
-              width={1600}
-              height={1808}
-              fetchPriority="high"
-              className="h-[78vh] min-h-[560px] w-full object-cover sm:h-[82vh]"
-            />
+            <div className="h-[78vh] min-h-[560px] w-full sm:h-[82vh]">
+              <EditableMedia
+                id="home.hero.image"
+                defaultSrc={hero}
+                alt="Скамейка SADOVA — тик и матовая сталь в саду"
+                className="h-full w-full object-cover"
+                imgProps={{ width: 1600, height: 1808, fetchPriority: "high" }}
+              />
+            </div>
             {/* Gradient scrim for legibility */}
             <div
               aria-hidden
@@ -77,20 +79,12 @@ function Index() {
                   transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                   className="text-[40px] font-semibold leading-[0.98] tracking-tight sm:text-6xl md:text-[88px]"
                 >
-                  Сад,{" "}
-                  <span
-                    className="italic"
-                    style={{
-                      background:
-                        "linear-gradient(120deg, #f4d9a8, #e6b17a 60%, #d29566)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                    }}
-                  >
-                    в&nbsp;котором
-                  </span>
-                  <br />
-                  хочется остаться.
+                  <EditableText
+                    id="home.hero.title"
+                    defaultValue="Сад, в котором хочется остаться."
+                    multiline
+                    className="block"
+                  />
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 16 }}
@@ -98,8 +92,11 @@ function Index() {
                   transition={{ duration: 0.8, delay: 0.15 }}
                   className="mt-5 max-w-lg text-[15px] leading-relaxed text-white/85 sm:text-[17px]"
                 >
-                  Скамейки, кресла и лаунж из тика, алюминия и HPL-камня. Выдерживают
-                  российскую погоду — от +40 до −30.
+                  <EditableText
+                    id="home.hero.subtitle"
+                    defaultValue="Скамейки, кресла и лаунж из тика, алюминия и HPL-камня. Выдерживают российскую погоду — от +40 до −30."
+                    multiline
+                  />
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
