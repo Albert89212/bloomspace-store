@@ -1,10 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Star } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { findProduct, formatPrice, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/components/ProductCard";
+import { Product3DViewer } from "@/components/Product3DViewer";
+import { useReviews } from "@/lib/reviews-store";
 
 export const Route = createFileRoute("/catalog/$slug")({
   loader: ({ params }) => {
@@ -42,6 +44,17 @@ function ProductPage() {
   const { product } = Route.useLoaderData();
   const add = useCart((s) => s.add);
   const [added, setAdded] = useState(false);
+  const [view, setView] = useState<"photo" | "3d">("photo");
+  const allReviews = useReviews((s) => s.items);
+  const addReview = useReviews((s) => s.add);
+  const productReviews = useMemo(
+    () => allReviews.filter((r) => r.productSlug === product.slug && r.approved),
+    [allReviews, product.slug],
+  );
+  const avgRating =
+    productReviews.length > 0
+      ? productReviews.reduce((n, r) => n + r.rating, 0) / productReviews.length
+      : product.rating;
 
   const related = products.filter((p) => p.id !== product.id).slice(0, 3);
 
@@ -73,15 +86,33 @@ function ProductPage() {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden rounded-3xl bg-surface"
         >
-          <img
-            src={product.image}
-            alt={product.name}
-            width={1024}
-            height={1024}
-            className="w-full object-cover"
-          />
+          <div className="mb-3 inline-flex rounded-full border border-hairline p-1 text-[12px]">
+            {(["photo", "3d"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`rounded-full px-4 py-1.5 transition-colors ${
+                  view === v ? "bg-foreground text-background" : "text-muted-foreground"
+                }`}
+              >
+                {v === "photo" ? "Фото" : "3D"}
+              </button>
+            ))}
+          </div>
+          {view === "photo" ? (
+            <div className="overflow-hidden rounded-3xl bg-surface">
+              <img
+                src={product.image}
+                alt={product.name}
+                width={1024}
+                height={1024}
+                className="w-full object-cover"
+              />
+            </div>
+          ) : (
+            <Product3DViewer />
+          )}
         </motion.div>
 
         <motion.div
@@ -98,8 +129,11 @@ function ProductPage() {
           </h1>
           <div className="mt-4 flex items-center gap-1.5">
             <Star className="h-4 w-4 fill-foreground" />
-            <span className="text-[13px]">{product.rating.toFixed(1)}</span>
-            <span className="text-[13px] text-muted-foreground">/ 5</span>
+            <span className="text-[13px]">{avgRating.toFixed(1)}</span>
+            <span className="text-[13px] text-muted-foreground">
+              / 5 · {productReviews.length} отзыв
+              {productReviews.length === 1 ? "" : productReviews.length < 5 ? "а" : "ов"}
+            </span>
           </div>
 
           <p className="mt-6 text-[15px] leading-relaxed text-muted-foreground">
@@ -140,6 +174,8 @@ function ProductPage() {
         </motion.div>
       </section>
 
+      <ReviewsSection productSlug={product.slug} onSubmit={addReview} />
+
       <section className="mx-auto max-w-7xl px-6 py-16">
         <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Похожие модели</h2>
         <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -149,5 +185,122 @@ function ProductPage() {
         </div>
       </section>
     </>
+  );
+}
+
+function ReviewsSection({
+  productSlug,
+  onSubmit,
+}: {
+  productSlug: string;
+  onSubmit: (r: { productSlug: string; author: string; rating: number; text: string }) => void;
+}) {
+  const allReviews = useReviews((s) => s.items);
+  const reviews = allReviews.filter((r) => r.productSlug === productSlug && r.approved);
+  const [author, setAuthor] = useState("");
+  const [rating, setRating] = useState(5);
+  const [text, setText] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!author.trim() || !text.trim()) return;
+    onSubmit({ productSlug, author: author.trim(), rating, text: text.trim() });
+    setAuthor("");
+    setText("");
+    setRating(5);
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 4000);
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-16">
+      <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Отзывы</h2>
+
+      <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_400px]">
+        <ul className="space-y-6">
+          {reviews.length === 0 && (
+            <li className="text-[14px] text-muted-foreground">
+              Пока нет отзывов — будьте первым.
+            </li>
+          )}
+          {reviews.map((r) => (
+            <li key={r.id} className="rounded-2xl bg-surface p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-[14px] font-medium">{r.author}</div>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${
+                        i < r.rating ? "fill-foreground" : "text-muted-foreground/30"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="mt-3 text-[14px] leading-relaxed">{r.text}</p>
+              <div className="mt-3 text-[11px] text-muted-foreground">
+                {new Date(r.createdAt).toLocaleDateString("ru-RU")}
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <form onSubmit={submit} className="h-fit rounded-3xl bg-surface p-6">
+          <div className="text-[15px] font-medium">Оставить отзыв</div>
+          <label className="mt-4 block">
+            <span className="mb-1.5 block text-[12px] text-muted-foreground">Имя</span>
+            <input
+              value={author}
+              onChange={(e) => setAuthor(e.target.value.slice(0, 60))}
+              className="h-11 w-full rounded-xl border border-hairline bg-background px-3 text-[14px] outline-none focus:border-foreground"
+              required
+            />
+          </label>
+          <div className="mt-4">
+            <span className="mb-1.5 block text-[12px] text-muted-foreground">Оценка</span>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setRating(n)}
+                  className="p-1"
+                  aria-label={`${n} звёзд`}
+                >
+                  <Star
+                    className={`h-5 w-5 ${
+                      n <= rating ? "fill-foreground" : "text-muted-foreground/30"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="mt-4 block">
+            <span className="mb-1.5 block text-[12px] text-muted-foreground">Отзыв</span>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value.slice(0, 1000))}
+              rows={4}
+              className="w-full resize-none rounded-xl border border-hairline bg-background p-3 text-[14px] outline-none focus:border-foreground"
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            className="mt-4 h-11 w-full rounded-full bg-foreground text-[13px] font-medium text-background"
+          >
+            Отправить на модерацию
+          </button>
+          {submitted && (
+            <p className="mt-3 text-[12px] text-muted-foreground">
+              Спасибо! Отзыв опубликуем после проверки.
+            </p>
+          )}
+        </form>
+      </div>
+    </section>
   );
 }

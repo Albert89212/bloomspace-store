@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus, X } from "lucide-react";
 import { useCart, selectCartTotal } from "@/lib/cart-store";
@@ -19,6 +19,7 @@ function CartPage() {
   const total = useCart(selectCartTotal);
   const setQty = useCart((s) => s.setQty);
   const remove = useCart((s) => s.remove);
+  const navigate = useNavigate();
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16 md:py-24">
@@ -121,6 +122,8 @@ function CartPage() {
             </div>
             <motion.button
               whileTap={{ scale: 0.97 }}
+              onClick={() => navigate({ to: "/checkout" })}
+              disabled={items.length === 0}
               className="mt-6 h-12 w-full rounded-full bg-foreground text-[14px] font-medium text-background"
             >
               Оформить заказ
