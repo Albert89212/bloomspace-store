@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Heart, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
+import { useLifePosts } from "@/lib/life-posts-store";
 
 export const Route = createFileRoute("/life")({
   head: () => ({
@@ -92,6 +93,21 @@ const posts: Post[] = [
 ];
 
 function LifePage() {
+  const userPosts = useLifePosts((s) => s.items);
+  const combined: Post[] = [
+    ...userPosts.map((p) => ({
+      id: p.id,
+      author: p.author,
+      role: p.role,
+      date: new Date(p.createdAt).toLocaleDateString("ru-RU"),
+      caption: p.caption,
+      poster: p.poster,
+      video: p.video,
+      likes: 0,
+      comments: 0,
+    })),
+    ...posts,
+  ];
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <motion.div
@@ -112,7 +128,7 @@ function LifePage() {
       </motion.div>
 
       <div className="mt-16 grid gap-10 md:grid-cols-2">
-        {posts.map((p, i) => (
+        {combined.map((p, i) => (
           <PostCard key={p.id} post={p} index={i} />
         ))}
       </div>
