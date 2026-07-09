@@ -40,8 +40,10 @@ export function EditableText({
     }
   }, [editing, value]);
 
+  const T = Tag as React.ElementType;
+
   if (!canEdit) {
-    return <Tag className={className} style={style}>{value}</Tag>;
+    return <T className={className} style={style}>{value}</T>;
   }
 
   if (editing) {
@@ -83,14 +85,14 @@ export function EditableText({
   }
 
   return (
-    <Tag
+    <T
       className={`${className ?? ""} relative cursor-text rounded outline-1 outline-dashed outline-[color:var(--brand)]/60 outline-offset-4 hover:outline-2`}
       style={style}
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setEditing(true); }}
+      onClick={(e: React.MouseEvent) => { e.stopPropagation(); e.preventDefault(); setEditing(true); }}
       title="Клик — редактировать"
     >
       {value}
-    </Tag>
+    </T>
   );
 }
 
