@@ -13,4 +13,7 @@ export const company = {
   bankInn: "7707083893",
   bankKpp: "301502001",
   supportEmail: "support@sadova.ru",
+  address:
+    "416368, Россия, Астраханская обл., Икрянинский м.р-н, Мумринский с/с, п. Товарный, ул. Набережная, д. 72",
+  siteUrl: "https://sadova.example",
 };
