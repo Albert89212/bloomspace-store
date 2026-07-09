@@ -18,6 +18,7 @@ import "@fontsource/inter/700.css";
 import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SupportChatWidget } from "../components/SupportChatWidget";
+import { OwnerEditToggle } from "../components/Editable";
 
 function NotFoundComponent() {
   return (
