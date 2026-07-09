@@ -8,6 +8,8 @@ import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/components/ProductCard";
 import { Product3DViewer } from "@/components/Product3DViewer";
 import { useReviews } from "@/lib/reviews-store";
+import { useCurrentUser } from "@/lib/auth-store";
+import { useOrders } from "@/lib/orders-store";
 
 export const Route = createFileRoute("/catalog/$slug")({
   head: () => ({
@@ -178,7 +180,7 @@ function ProductPage() {
         </motion.div>
       </section>
 
-      <ReviewsSection productSlug={product.slug} onSubmit={addReview} />
+      <ReviewsSection productSlug={product.slug} productId={product.id} onSubmit={addReview} />
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Похожие модели</h2>
@@ -194,23 +196,47 @@ function ProductPage() {
 
 function ReviewsSection({
   productSlug,
+  productId,
   onSubmit,
 }: {
   productSlug: string;
-  onSubmit: (r: { productSlug: string; author: string; rating: number; text: string }) => void;
+  productId: string;
+  onSubmit: (r: {
+    productSlug: string;
+    author: string;
+    rating: number;
+    text: string;
+    userId: string;
+    verifiedPurchase: boolean;
+  }) => void;
 }) {
   const allReviews = useReviews((s) => s.items);
   const reviews = allReviews.filter((r) => r.productSlug === productSlug && r.approved);
-  const [author, setAuthor] = useState("");
+  const user = useCurrentUser();
+  const orders = useOrders((s) => s.items);
+  const hasDeliveredPurchase =
+    !!user &&
+    orders.some(
+      (o) =>
+        o.userId === user.id &&
+        o.status === "done" &&
+        o.items.some((it) => it.id === productId),
+    );
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!author.trim() || !text.trim()) return;
-    onSubmit({ productSlug, author: author.trim(), rating, text: text.trim() });
-    setAuthor("");
+    if (!user || !hasDeliveredPurchase || !text.trim()) return;
+    onSubmit({
+      productSlug,
+      author: user.name,
+      rating,
+      text: text.trim(),
+      userId: user.id,
+      verifiedPurchase: true,
+    });
     setText("");
     setRating(5);
     setSubmitted(true);
@@ -251,18 +277,24 @@ function ReviewsSection({
           ))}
         </ul>
 
-        <form onSubmit={submit} className="h-fit rounded-3xl bg-surface p-6">
+        <div className="h-fit rounded-3xl bg-surface p-6">
           <div className="text-[15px] font-medium">Оставить отзыв</div>
-          <label className="mt-4 block">
-            <span className="mb-1.5 block text-[12px] text-muted-foreground">Имя</span>
-            <input
-              value={author}
-              onChange={(e) => setAuthor(e.target.value.slice(0, 60))}
-              className="h-11 w-full rounded-xl border border-hairline bg-background px-3 text-[14px] outline-none focus:border-foreground"
-              required
-            />
-          </label>
-          <div className="mt-4">
+          {!user ? (
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              <Link to="/auth" className="underline">Войдите</Link>, чтобы оставить отзыв.
+              Отзывы доступны только покупателям, получившим заказ.
+            </p>
+          ) : !hasDeliveredPurchase ? (
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              Отзыв можно оставить только после получения товара. Это защита от накруток
+              и требование законодательства РФ о добросовестной рекламе.
+            </p>
+          ) : (
+            <form onSubmit={submit} className="mt-3">
+              <div className="text-[12px] text-muted-foreground">
+                От имени <b className="text-foreground">{user.name}</b> · Подтверждённая покупка
+              </div>
+              <div className="mt-4">
             <span className="mb-1.5 block text-[12px] text-muted-foreground">Оценка</span>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
@@ -296,14 +328,16 @@ function ReviewsSection({
             type="submit"
             className="mt-4 h-11 w-full rounded-full bg-foreground text-[13px] font-medium text-background"
           >
-            Отправить на модерацию
-          </button>
-          {submitted && (
-            <p className="mt-3 text-[12px] text-muted-foreground">
-              Спасибо! Отзыв опубликуем после проверки.
-            </p>
+                Опубликовать отзыв
+              </button>
+              {submitted && (
+                <p className="mt-3 text-[12px] text-muted-foreground">
+                  Спасибо! Ваш отзыв опубликован.
+                </p>
+              )}
+            </form>
           )}
-        </form>
+        </div>
       </div>
     </section>
   );

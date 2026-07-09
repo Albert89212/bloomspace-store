@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Play, Volume2, VolumeX } from "lucide-react";
+import { Heart, MessageCircle, Play, Send, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
-import { useLifePosts } from "@/lib/life-posts-store";
+import { useLifePosts, type LifePost } from "@/lib/life-posts-store";
+import { useCurrentUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/life")({
   head: () => ({
@@ -25,89 +26,8 @@ export const Route = createFileRoute("/life")({
   component: LifePage,
 });
 
-type Post = {
-  id: string;
-  author: string;
-  role: string;
-  date: string;
-  caption: string;
-  poster: string;
-  video?: string;
-  likes: number;
-  comments: number;
-};
-
-const posts: Post[] = [
-  {
-    id: "1",
-    author: "SADOVA Production",
-    role: "Производство · Тула",
-    date: "3 дня назад",
-    caption:
-      "Собираем новую партию Aero Lounge. Каркас — авиационный алюминий, каждая сварка проходит контроль.",
-    poster:
-      "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1200&q=80",
-    video:
-      "https://cdn.coverr.co/videos/coverr-a-carpenter-at-work-4517/1080p.mp4",
-    likes: 342,
-    comments: 28,
-  },
-  {
-    id: "2",
-    author: "Шоурум Москва",
-    role: "Флагман · Патриаршие",
-    date: "неделю назад",
-    caption: "Утро в шоуруме. Новая коллекция уже ждёт вас — заходите на кофе.",
-    poster:
-      "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1200&q=80",
-    video:
-      "https://cdn.coverr.co/videos/coverr-a-designer-in-his-studio-4433/1080p.mp4",
-    likes: 512,
-    comments: 47,
-  },
-  {
-    id: "3",
-    author: "Монтаж у клиента",
-    role: "Подмосковье",
-    date: "2 недели назад",
-    caption:
-      "Терраса 84 м² за один день. Спасибо семье Ковалёвых за доверие ❤️",
-    poster:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-    video:
-      "https://cdn.coverr.co/videos/coverr-a-modern-house-with-a-pool-4820/1080p.mp4",
-    likes: 891,
-    comments: 63,
-  },
-  {
-    id: "4",
-    author: "Дизайн-студия",
-    role: "Закулисье",
-    date: "месяц назад",
-    caption: "Первые эскизы коллекции 2026. Скоро покажем прототипы.",
-    poster:
-      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
-    likes: 267,
-    comments: 19,
-  },
-];
-
 function LifePage() {
-  const userPosts = useLifePosts((s) => s.items);
-  const combined: Post[] = [
-    ...userPosts.map((p) => ({
-      id: p.id,
-      author: p.author,
-      role: p.role,
-      date: new Date(p.createdAt).toLocaleDateString("ru-RU"),
-      caption: p.caption,
-      poster: p.poster,
-      video: p.video,
-      likes: 0,
-      comments: 0,
-    })),
-    ...posts,
-  ];
+  const posts = useLifePosts((s) => s.items);
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <motion.div
@@ -122,25 +42,38 @@ function LifePage() {
           Жизнь SADOVA
         </h1>
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-          Производство, шоурум, монтажи у клиентов и закулисье бренда. Всё,
-          что не поместилось в каталог.
+          Производство, шоурум, монтажи у клиентов и закулисье бренда. Лайки и
+          комментарии — только от реальных зарегистрированных пользователей,
+          без накруток.
         </p>
       </motion.div>
 
-      <div className="mt-16 grid gap-10 md:grid-cols-2">
-        {combined.map((p, i) => (
-          <PostCard key={p.id} post={p} index={i} />
-        ))}
-      </div>
+      {posts.length === 0 ? (
+        <div className="mt-16 rounded-3xl border border-hairline bg-surface p-12 text-center text-[13px] text-muted-foreground">
+          Публикаций пока нет. Владелец скоро добавит первую в админ-панели.
+        </div>
+      ) : (
+        <div className="mt-16 grid gap-10 md:grid-cols-2">
+          {posts.map((p, i) => (
+            <PostCard key={p.id} post={p} index={i} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-function PostCard({ post, index }: { post: Post; index: number }) {
+function PostCard({ post, index }: { post: LifePost; index: number }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [liked, setLiked] = useState(false);
+  const user = useCurrentUser();
+  const toggleLike = useLifePosts((s) => s.toggleLike);
+  const addComment = useLifePosts((s) => s.addComment);
+  const [showComments, setShowComments] = useState(false);
+  const [text, setText] = useState("");
+
+  const liked = !!user && post.likes.includes(user.id);
 
   const toggle = () => {
     const v = videoRef.current;
@@ -153,6 +86,13 @@ function PostCard({ post, index }: { post: Post; index: number }) {
       setPlaying(false);
     }
   };
+
+  function submitComment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || !text.trim()) return;
+    addComment(post.id, { userId: user.id, authorName: user.name, text: text.trim().slice(0, 500) });
+    setText("");
+  }
 
   return (
     <motion.article
@@ -210,29 +150,62 @@ function PostCard({ post, index }: { post: Post; index: number }) {
           <div>
             <div className="text-[14px] font-medium">{post.author}</div>
             <div className="text-[12px] text-muted-foreground">
-              {post.role} · {post.date}
+              {post.role} · {new Date(post.createdAt).toLocaleDateString("ru-RU")}
             </div>
           </div>
           <div className="flex items-center gap-3 text-muted-foreground">
             <button
-              onClick={() => setLiked((l) => !l)}
-              className="flex items-center gap-1 transition-colors hover:text-foreground"
-              aria-label="Нравится"
+              onClick={() => user && toggleLike(post.id, user.id)}
+              disabled={!user}
+              title={user ? "Нравится" : "Войдите, чтобы поставить лайк"}
+              className="flex items-center gap-1 transition-colors hover:text-foreground disabled:opacity-50"
             >
               <Heart
                 className={`h-4 w-4 transition-all ${liked ? "fill-red-500 text-red-500" : ""}`}
               />
-              <span className="text-[12px] tabular-nums">
-                {post.likes + (liked ? 1 : 0)}
-              </span>
+              <span className="text-[12px] tabular-nums">{post.likes.length}</span>
             </button>
-            <div className="flex items-center gap-1">
+            <button
+              onClick={() => setShowComments((v) => !v)}
+              className="flex items-center gap-1 transition-colors hover:text-foreground"
+            >
               <MessageCircle className="h-4 w-4" />
-              <span className="text-[12px] tabular-nums">{post.comments}</span>
-            </div>
+              <span className="text-[12px] tabular-nums">{post.comments.length}</span>
+            </button>
           </div>
         </div>
         <p className="mt-3 text-[14px] leading-relaxed">{post.caption}</p>
+
+        {showComments && (
+          <div className="mt-4 space-y-3 border-t border-hairline pt-4">
+            {post.comments.length === 0 && (
+              <p className="text-[12px] text-muted-foreground">Пока нет комментариев.</p>
+            )}
+            {post.comments.map((c) => (
+              <div key={c.id} className="text-[13px]">
+                <span className="font-medium">{c.authorName}</span>{" "}
+                <span className="text-muted-foreground">{c.text}</span>
+              </div>
+            ))}
+            {user ? (
+              <form onSubmit={submitComment} className="flex gap-2 pt-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Ваш комментарий…"
+                  className="h-9 flex-1 rounded-full border border-hairline bg-background px-3 text-[13px]"
+                />
+                <button className="rounded-full bg-foreground p-2 text-background">
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </form>
+            ) : (
+              <p className="text-[12px] text-muted-foreground">
+                <Link to="/auth" className="underline">Войдите</Link>, чтобы комментировать.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </motion.article>
   );
