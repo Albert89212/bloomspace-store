@@ -23,7 +23,7 @@ function Index() {
       <section className="relative">
         <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-6 sm:pt-6">
           <div className="relative overflow-hidden rounded-[28px] sm:rounded-[36px]">
-            <div className="h-[78vh] min-h-[560px] w-full sm:h-[82vh]">
+            <div className="h-[78vh] min-h-[560px] w-full sm:h-[82vh] sm:max-h-[820px]">
               <EditableMedia
                 id="home.hero.image"
                 defaultSrc={hero}
