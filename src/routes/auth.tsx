@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { Copy, LogOut, Sparkles } from "lucide-react";
+import { Copy, LogOut, Sparkles, Mail, ShieldCheck } from "lucide-react";
 import { useAuth, useCurrentUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/auth")({
@@ -26,21 +26,37 @@ function AuthForm() {
   const search = useSearch({ from: "/auth" });
   const navigate = useNavigate();
   const login = useAuth((s) => s.login);
-  const signup = useAuth((s) => s.signup);
-  const [mode, setMode] = useState<"login" | "signup">(search.ref ? "signup" : "login");
+  const requestSignup = useAuth((s) => s.requestSignup);
+  const confirmSignup = useAuth((s) => s.confirmSignup);
+  const [mode, setMode] = useState<"login" | "signup" | "verify">(
+    search.ref ? "signup" : "login",
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [ref, setRef] = useState(search.ref ?? "");
+  const [otp, setOtp] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const res =
-      mode === "login"
-        ? login(email, password)
-        : signup({ name, email, password, referralCode: ref || undefined });
+    if (mode === "login") {
+      const res = login(email, password);
+      if (!res.ok) return setError(res.error);
+      navigate({ to: "/" });
+      return;
+    }
+    if (mode === "signup") {
+      const res = requestSignup({ name, email, password, referralCode: ref || undefined });
+      if (!res.ok) return setError(res.error);
+      setDevCode(res.code);
+      setMode("verify");
+      return;
+    }
+    // verify
+    const res = confirmSignup(otp);
     if (!res.ok) return setError(res.error);
     navigate({ to: "/" });
   }
@@ -49,12 +65,14 @@ function AuthForm() {
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <h1 className="text-3xl font-semibold tracking-tight">
-          {mode === "login" ? "С возвращением" : "Создать аккаунт"}
+          {mode === "login" ? "С возвращением" : mode === "signup" ? "Создать аккаунт" : "Подтверждение почты"}
         </h1>
         <p className="mt-2 text-[14px] text-muted-foreground">
-          {mode === "login"
-            ? "Войдите, чтобы отслеживать заказы и оставлять отзывы"
-            : "Регистрация даёт бонусы за приглашённых друзей"}
+          {mode === "login" && "Войдите, чтобы отслеживать заказы и оставлять отзывы"}
+          {mode === "signup" && "Регистрация даёт бонусы за приглашённых друзей"}
+          {mode === "verify" && (
+            <>Мы отправили 6-значный код на <b className="text-foreground">{email}</b>. Введите его ниже.</>
+          )}
         </p>
       </motion.div>
 
@@ -71,44 +89,108 @@ function AuthForm() {
           {mode === "signup" && (
             <Field label="Имя" type="text" placeholder="Иван Петров" value={name} onChange={setName} required />
           )}
-          <Field label="Email" type="email" placeholder="you@example.com" value={email} onChange={setEmail} required />
-          <Field label="Пароль" type="password" placeholder="Минимум 6 символов" value={password} onChange={setPassword} required />
+          {mode !== "verify" && (
+            <>
+              <Field label="Email" type="email" placeholder="you@example.com" value={email} onChange={setEmail} required />
+              <Field label="Пароль" type="password" placeholder="Минимум 6 символов" value={password} onChange={setPassword} required />
+            </>
+          )}
           {mode === "signup" && (
             <Field label="Реферальный код (по желанию)" type="text" placeholder="ABCD12" value={ref} onChange={setRef} />
+          )}
+          {mode === "verify" && (
+            <>
+              <label className="block">
+                <span className="mb-1.5 block text-[12px] font-medium text-muted-foreground">
+                  Код из письма
+                </span>
+                <input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric"
+                  autoFocus
+                  placeholder="123456"
+                  className="h-14 w-full rounded-2xl border border-hairline bg-surface px-4 text-center font-mono text-2xl tracking-[0.5em] outline-none focus:border-foreground"
+                />
+              </label>
+              {devCode && (
+                <div className="rounded-xl border border-dashed border-hairline p-3 text-[11px] text-muted-foreground">
+                  <ShieldCheck className="mr-1 inline h-3.5 w-3.5" />
+                  Демо-режим: код <b className="font-mono text-foreground">{devCode}</b>.
+                  В проде отправка через Lovable Emails / SMTP.
+                </div>
+              )}
+            </>
           )}
 
           {error && <div className="text-[12px] text-red-600">{error}</div>}
 
-          <label className="flex items-start gap-2 pt-2 text-[12px] text-muted-foreground">
-            <input type="checkbox" className="mt-0.5" defaultChecked required />
-            <span>
-              Согласен с{" "}
-              <Link to="/legal/terms" className="underline">пользовательским соглашением</Link>
-              {" "}и обработкой персональных данных согласно{" "}
-              <Link to="/legal/privacy" className="underline">152-ФЗ</Link>
-            </span>
-          </label>
+          {mode === "signup" && (
+            <label className="flex items-start gap-2 pt-2 text-[12px] text-muted-foreground">
+              <input type="checkbox" className="mt-0.5" defaultChecked required />
+              <span>
+                Согласен с{" "}
+                <Link to="/legal/terms" className="underline">пользовательским соглашением</Link>
+                {" "}и обработкой персональных данных согласно{" "}
+                <Link to="/legal/privacy" className="underline">152-ФЗ</Link>
+              </span>
+            </label>
+          )}
 
           <motion.button
             whileTap={{ scale: 0.97 }}
             type="submit"
             className="mt-4 h-12 w-full rounded-full bg-foreground text-[14px] font-medium text-background"
           >
-            {mode === "login" ? "Войти" : "Создать аккаунт"}
+            {mode === "login" && "Войти"}
+            {mode === "signup" && (<><Mail className="mr-2 inline h-4 w-4" /> Отправить код на почту</>)}
+            {mode === "verify" && "Подтвердить и войти"}
           </motion.button>
+
+          {mode === "login" && (
+            <div className="pt-4">
+              <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
+                <span className="h-px flex-1 bg-hairline" />или<span className="h-px flex-1 bg-hairline" />
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <SocialBtn label="VK ID" />
+                <SocialBtn label="Яндекс" />
+                <SocialBtn label="Telegram" />
+              </div>
+              <div className="mt-2 text-center text-[10px] text-muted-foreground">
+                Соцлогин подключается на сервере (VK ID, Yandex ID, Telegram Login).
+              </div>
+            </div>
+          )}
         </motion.form>
       </AnimatePresence>
 
       <div className="mt-6 text-center text-[13px] text-muted-foreground">
-        {mode === "login" ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
+        {mode === "login" ? "Нет аккаунта?" : mode === "verify" ? "Ошиблись?" : "Уже есть аккаунт?"}{" "}
         <button
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          onClick={() => {
+            setError(null);
+            setOtp("");
+            setMode(mode === "login" ? "signup" : "login");
+          }}
           className="text-foreground underline underline-offset-2"
         >
           {mode === "login" ? "Регистрация" : "Войти"}
         </button>
       </div>
     </div>
+  );
+}
+
+function SocialBtn({ label }: { label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => alert(`${label}: подключается на сервере через OAuth. Демо-заглушка.`)}
+      className="h-10 rounded-full border border-hairline text-[12px] font-medium hover:bg-secondary"
+    >
+      {label}
+    </button>
   );
 }
 

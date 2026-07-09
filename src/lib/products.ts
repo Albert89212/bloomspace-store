@@ -13,6 +13,11 @@ export interface Product {
   image: string;
   rating: number;
   specs: { label: string; value: string }[];
+  material?: string;
+  color?: string;
+  collection?: string;
+  wholesalePrice?: number;
+  stock?: number;
 }
 
 export const categories: { id: Category; label: string }[] = [

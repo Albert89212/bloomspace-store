@@ -11,6 +11,8 @@ export interface Review {
   createdAt: number;
   approved: boolean;
   verifiedPurchase: boolean;
+  photos?: string[]; // dataURL или https URL
+  video?: string; // dataURL / URL — короткое видео до 30 сек
 }
 
 interface ReviewsState {
