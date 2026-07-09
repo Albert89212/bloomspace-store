@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { categories, products, type Category } from "@/lib/products";
 
-export const Route = createFileRoute("/catalog")({
+export const Route = createFileRoute("/catalog/")({
   head: () => ({
     meta: [
       { title: "Каталог — SADOVA" },
