@@ -64,11 +64,11 @@ function ProductPage() {
 
   function handleAdd() {
     add({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      price: product.price,
-      image: product.image,
+      id: product!.id,
+      slug: product!.slug,
+      name: product!.name,
+      price: product!.price,
+      image: product!.image,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1600);
