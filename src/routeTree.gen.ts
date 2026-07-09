@@ -14,7 +14,6 @@ import { Route as LifeRouteImport } from './routes/life'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
@@ -26,7 +25,6 @@ import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
-import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
 
@@ -55,11 +53,6 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -76,9 +69,9 @@ const CatalogIndexRoute = CatalogIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const OrderNumberRoute = OrderNumberRouteImport.update({
   id: '/order/$number',
@@ -106,35 +99,29 @@ const CatalogSlugRoute = CatalogSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminTicketsRoute = AdminTicketsRouteImport.update({
-  id: '/tickets',
-  path: '/tickets',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/tickets',
+  path: '/admin/tickets',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/reviews',
+  path: '/admin/reviews',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/orders',
+  path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLifeRoute = AdminLifeRouteImport.update({
-  id: '/life',
-  path: '/life',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/life',
+  path: '/admin/life',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -142,7 +129,6 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
@@ -163,7 +149,6 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
@@ -178,7 +163,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
@@ -186,7 +170,6 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
-  '/admin/products': typeof AdminProductsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/tickets': typeof AdminTicketsRoute
   '/catalog/$slug': typeof CatalogSlugRoute
@@ -202,7 +185,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/admin'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -210,7 +192,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/admin/life'
     | '/admin/orders'
-    | '/admin/products'
     | '/admin/reviews'
     | '/admin/tickets'
     | '/catalog/$slug'
@@ -231,7 +212,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/admin/life'
     | '/admin/orders'
-    | '/admin/products'
     | '/admin/reviews'
     | '/admin/tickets'
     | '/catalog/$slug'
@@ -245,7 +225,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/admin'
     | '/auth'
     | '/cart'
     | '/checkout'
@@ -253,7 +232,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/admin/life'
     | '/admin/orders'
-    | '/admin/products'
     | '/admin/reviews'
     | '/admin/tickets'
     | '/catalog/$slug'
@@ -268,17 +246,21 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
+  AdminLifeRoute: typeof AdminLifeRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminTicketsRoute: typeof AdminTicketsRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   OrderNumberRoute: typeof OrderNumberRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   CatalogIndexRoute: typeof CatalogIndexRoute
 }
 
@@ -319,13 +301,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -349,10 +324,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/': {
       id: '/admin/'
-      path: '/'
+      path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/order/$number': {
       id: '/order/$number'
@@ -391,76 +366,53 @@ declare module '@tanstack/react-router' {
     }
     '/admin/tickets': {
       id: '/admin/tickets'
-      path: '/tickets'
+      path: '/admin/tickets'
       fullPath: '/admin/tickets'
       preLoaderRoute: typeof AdminTicketsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/reviews': {
       id: '/admin/reviews'
-      path: '/reviews'
+      path: '/admin/reviews'
       fullPath: '/admin/reviews'
       preLoaderRoute: typeof AdminReviewsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/products': {
-      id: '/admin/products'
-      path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/orders': {
       id: '/admin/orders'
-      path: '/orders'
+      path: '/admin/orders'
       fullPath: '/admin/orders'
       preLoaderRoute: typeof AdminOrdersRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/life': {
       id: '/admin/life'
-      path: '/life'
+      path: '/admin/life'
       fullPath: '/admin/life'
       preLoaderRoute: typeof AdminLifeRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminLifeRoute: typeof AdminLifeRoute
-  AdminOrdersRoute: typeof AdminOrdersRoute
-  AdminProductsRoute: typeof AdminProductsRoute
-  AdminReviewsRoute: typeof AdminReviewsRoute
-  AdminTicketsRoute: typeof AdminTicketsRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminLifeRoute: AdminLifeRoute,
-  AdminOrdersRoute: AdminOrdersRoute,
-  AdminProductsRoute: AdminProductsRoute,
-  AdminReviewsRoute: AdminReviewsRoute,
-  AdminTicketsRoute: AdminTicketsRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
+  AdminLifeRoute: AdminLifeRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
+  AdminTicketsRoute: AdminTicketsRoute,
   CatalogSlugRoute: CatalogSlugRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   OrderNumberRoute: OrderNumberRoute,
+  AdminIndexRoute: AdminIndexRoute,
   CatalogIndexRoute: CatalogIndexRoute,
 }
 export const routeTree = rootRouteImport
