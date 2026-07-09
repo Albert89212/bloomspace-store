@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
@@ -20,11 +19,6 @@ import { Route as CatalogIndexRouteImport } from './routes/catalog.index'
 import { Route as OrderNumberRouteImport } from './routes/order.$number'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LifeRoute = LifeRouteImport.update({
   id: '/life',
   path: '/life',
@@ -78,7 +72,6 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
-  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog/': typeof CatalogIndexRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
-  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog': typeof CatalogIndexRoute
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/life': typeof LifeRoute
-  '/support': typeof SupportRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/order/$number': typeof OrderNumberRoute
   '/catalog/': typeof CatalogIndexRoute
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
-    | '/support'
     | '/catalog/$slug'
     | '/order/$number'
     | '/catalog/'
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
-    | '/support'
     | '/catalog/$slug'
     | '/order/$number'
     | '/catalog'
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/life'
-    | '/support'
     | '/catalog/$slug'
     | '/order/$number'
     | '/catalog/'
@@ -154,7 +142,6 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   LifeRoute: typeof LifeRoute
-  SupportRoute: typeof SupportRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
   OrderNumberRoute: typeof OrderNumberRoute
   CatalogIndexRoute: typeof CatalogIndexRoute
@@ -162,13 +149,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/life': {
       id: '/life'
       path: '/life'
@@ -242,7 +222,6 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   LifeRoute: LifeRoute,
-  SupportRoute: SupportRoute,
   CatalogSlugRoute: CatalogSlugRoute,
   OrderNumberRoute: OrderNumberRoute,
   CatalogIndexRoute: CatalogIndexRoute,
