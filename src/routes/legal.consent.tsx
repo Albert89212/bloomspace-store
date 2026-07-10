@@ -1,17 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { company } from "@/lib/company";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/consent")({
-  head: () => ({
-    meta: [
-      { title: "Согласие на обработку персональных данных — SADOVA" },
-      {
-        name: "description",
-        content:
-          "Форма согласия на обработку персональных данных согласно 152-ФЗ.",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/consent",
+      "Согласие на обработку персональных данных — SADOVA",
+      "Форма согласия на обработку персональных данных пользователей сайта SADOVA согласно ст. 9 152-ФЗ.",
+    ),
   component: ConsentPage,
 });
 

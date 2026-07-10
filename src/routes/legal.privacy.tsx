@@ -1,17 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { company } from "@/lib/company";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Политика конфиденциальности — SADOVA" },
-      {
-        name: "description",
-        content:
-          "Политика обработки персональных данных ИП Тогашев А. Д. согласно 152-ФЗ.",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/privacy",
+      "Политика конфиденциальности — SADOVA",
+      "Политика обработки персональных данных ИП Тогашев А. Д. согласно Федеральному закону № 152-ФЗ.",
+    ),
   component: PrivacyPage,
 });
 

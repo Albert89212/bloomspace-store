@@ -73,6 +73,10 @@ export function SiteFooter() {
               { to: "/legal/offer", label: "Публичная оферта" },
               { to: "/legal/privacy", label: "Политика конфиденциальности" },
               { to: "/legal/terms", label: "Пользовательское соглашение" },
+              { to: "/legal/return", label: "Возврат и обмен" },
+              { to: "/legal/cookies", label: "Политика cookies" },
+              { to: "/legal/consent", label: "Согласие на обработку ПДн" },
+              { to: "/legal/rules", label: "Правила магазина" },
             ]}
           />
         </div>
