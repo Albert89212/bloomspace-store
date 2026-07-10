@@ -1,6 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Star, ImagePlus, X, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Star,
+  ImagePlus,
+  X,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatPrice, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
@@ -11,6 +20,9 @@ import { useReviews } from "@/lib/reviews-store";
 import { useCurrentUser } from "@/lib/auth-store";
 import { useOrders } from "@/lib/orders-store";
 import { company } from "@/lib/company";
+import { WishlistButton } from "@/components/WishlistButton";
+import { DeliveryCalc } from "@/components/DeliveryCalc";
+import { BackInStock } from "@/components/BackInStock";
 
 export const Route = createFileRoute("/catalog/$slug")({
   head: () => ({
@@ -198,6 +210,20 @@ function ProductPage() {
               "Добавить в корзину"
             )}
           </motion.button>
+
+          <div className="mt-3 flex items-center gap-3">
+            <WishlistButton productId={product.id} className="bg-surface" />
+            <span className="text-[12px] text-muted-foreground">
+              Сохранить в избранное
+            </span>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            <DeliveryCalc />
+            {typeof product.stock === "number" && product.stock <= 0 && (
+              <BackInStock productId={product.id} productName={product.name} />
+            )}
+          </div>
 
           <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
             {product.specs.map((s: Product["specs"][number]) => (
