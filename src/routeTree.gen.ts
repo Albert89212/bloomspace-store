@@ -32,6 +32,7 @@ import { Route as LegalReturnRouteImport } from './routes/legal.return'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as LegalConsentRouteImport } from './routes/legal.consent'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -160,6 +161,11 @@ const LegalCookiesRoute = LegalCookiesRouteImport.update({
   path: '/legal/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalConsentRoute = LegalConsentRouteImport.update({
+  id: '/legal/consent',
+  path: '/legal/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CatalogSlugRoute = CatalogSlugRouteImport.update({
   id: '/catalog/$slug',
   path: '/catalog/$slug',
@@ -248,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
     | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
     | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
     | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
@@ -462,6 +474,7 @@ export interface RootRouteChildren {
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
+  LegalConsentRoute: typeof LegalConsentRoute
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
@@ -635,6 +648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalCookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/consent': {
+      id: '/legal/consent'
+      path: '/legal/consent'
+      fullPath: '/legal/consent'
+      preLoaderRoute: typeof LegalConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalog/$slug': {
       id: '/catalog/$slug'
       path: '/catalog/$slug'
@@ -777,6 +797,7 @@ const rootRouteChildren: RootRouteChildren = {
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
   CatalogSlugRoute: CatalogSlugRoute,
+  LegalConsentRoute: LegalConsentRoute,
   LegalCookiesRoute: LegalCookiesRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
