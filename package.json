@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
+    "start:beget": "node beget-start.mjs",
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "lint": "eslint .",
