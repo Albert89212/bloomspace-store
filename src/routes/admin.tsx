@@ -21,6 +21,7 @@ const tabs: { to: string; label: string; perm: string }[] = [
   { to: "/admin/reviews", label: "Отзывы", perm: "reviews" },
   { to: "/admin/tickets", label: "Тикеты", perm: "tickets" },
   { to: "/admin/chats", label: "Чаты заказов", perm: "chats" },
+  { to: "/admin/news", label: "Новости", perm: "products" },
   { to: "/admin/life", label: "Жизнь", perm: "life" },
   { to: "/admin/staff", label: "Должности", perm: "staff" },
 ];

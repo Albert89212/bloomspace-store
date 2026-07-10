@@ -13,6 +13,7 @@ const nav = [
   { to: "/", label: "Главная" },
   { to: "/catalog", label: "Каталог" },
   { to: "/life", label: "Жизнь магазина" },
+  { to: "/chats", label: "Чаты" },
   { to: "/blog", label: "Блог" },
   { to: "/about", label: "О бренде" },
   { to: "/support", label: "Поддержка" },
