@@ -1,17 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { company } from "@/lib/company";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/return")({
-  head: () => ({
-    meta: [
-      { title: "Возврат и обмен товара — SADOVA" },
-      {
-        name: "description",
-        content:
-          "Правила возврата и обмена садовой мебели по Закону РФ «О защите прав потребителей» и Правилам продажи товаров дистанционным способом.",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/return",
+      "Возврат и обмен товара — SADOVA",
+      "Правила возврата и обмена садовой мебели по Закону РФ «О защите прав потребителей» и Постановлению № 2463.",
+    ),
   component: ReturnPage,
 });
 
