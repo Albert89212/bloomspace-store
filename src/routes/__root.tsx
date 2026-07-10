@@ -19,6 +19,8 @@ import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SupportChatWidget } from "../components/SupportChatWidget";
 import { OwnerEditToggle } from "../components/Editable";
+import { MobileCartBar } from "../components/MobileCartBar";
+import { StylistWizard } from "../components/StylistWizard";
 import { initTheme } from "../lib/theme-store";
 
 function NotFoundComponent() {
@@ -138,6 +140,8 @@ function RootComponent() {
         </main>
         <SiteFooter />
         <SupportChatWidget />
+        <MobileCartBar />
+        <StylistWizard />
         <OwnerEditToggle />
       </div>
     </QueryClientProvider>

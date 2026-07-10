@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { z } from "zod";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/Skeleton";
 import { categories, type Category } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
 
@@ -73,6 +74,11 @@ function CatalogPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.cat]);
   const products = useProducts((s) => s.items);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setHydrated(true), 120);
+    return () => clearTimeout(t);
+  }, []);
   const filtered = useMemo(
     () =>
       products.filter((p) => {
@@ -127,12 +133,12 @@ function CatalogPage() {
       </div>
 
       <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p, i) => (
-          <ProductCard key={p.id} product={p} index={i} />
-        ))}
+        {!hydrated
+          ? Array.from({ length: 6 }).map((_, i) => <ProductCardSkeleton key={i} />)
+          : filtered.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
       </div>
 
-      {filtered.length === 0 && (
+      {hydrated && filtered.length === 0 && (
         <div className="py-20 text-center text-[14px] text-muted-foreground">
           Ничего не найдено
         </div>

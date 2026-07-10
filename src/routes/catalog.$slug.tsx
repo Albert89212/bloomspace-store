@@ -1,6 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Star, ImagePlus, X, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Star,
+  ImagePlus,
+  X,
+  ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatPrice, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
@@ -11,6 +20,9 @@ import { useReviews } from "@/lib/reviews-store";
 import { useCurrentUser } from "@/lib/auth-store";
 import { useOrders } from "@/lib/orders-store";
 import { company } from "@/lib/company";
+import { WishlistButton } from "@/components/WishlistButton";
+import { DeliveryCalc } from "@/components/DeliveryCalc";
+import { BackInStock } from "@/components/BackInStock";
 
 export const Route = createFileRoute("/catalog/$slug")({
   head: () => ({
@@ -199,6 +211,20 @@ function ProductPage() {
             )}
           </motion.button>
 
+          <div className="mt-3 flex items-center gap-3">
+            <WishlistButton productId={product.id} className="bg-surface" />
+            <span className="text-[12px] text-muted-foreground">
+              Сохранить в избранное
+            </span>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            <DeliveryCalc />
+            {typeof product.stock === "number" && product.stock <= 0 && (
+              <BackInStock productId={product.id} productName={product.name} />
+            )}
+          </div>
+
           <dl className="mt-10 divide-y divide-hairline border-y border-hairline">
             {product.specs.map((s: Product["specs"][number]) => (
               <div key={s.label} className="flex justify-between py-3 text-[13px]">
@@ -242,7 +268,30 @@ function ReviewsSection({
   }) => void;
 }) {
   const allReviews = useReviews((s) => s.items);
-  const reviews = allReviews.filter((r) => r.productSlug === productSlug && r.approved);
+  const productReviews = allReviews.filter(
+    (r) => r.productSlug === productSlug && r.approved,
+  );
+  const [filter, setFilter] = useState<"all" | "photo" | "5" | "4" | "3" | "low">("all");
+  const reviews = useMemo(
+    () =>
+      productReviews.filter((r) => {
+        if (filter === "photo") return (r.photos?.length ?? 0) > 0;
+        if (filter === "5") return r.rating === 5;
+        if (filter === "4") return r.rating === 4;
+        if (filter === "3") return r.rating === 3;
+        if (filter === "low") return r.rating <= 2;
+        return true;
+      }),
+    [productReviews, filter],
+  );
+  const photoStrip = useMemo(
+    () =>
+      productReviews
+        .flatMap((r) => (r.photos ?? []).map((src) => ({ src, id: r.id })))
+        .slice(0, 12),
+    [productReviews],
+  );
+  const [lightbox, setLightbox] = useState<number | null>(null);
   const user = useCurrentUser();
   const orders = useOrders((s) => s.items);
   const hasDeliveredPurchase =
@@ -292,11 +341,60 @@ function ReviewsSection({
     <section className="mx-auto max-w-7xl px-6 py-16">
       <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">Отзывы</h2>
 
+      {photoStrip.length > 0 && (
+        <div className="mt-6">
+          <div className="text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            Фото покупателей
+          </div>
+          <div className="mt-3 flex snap-x gap-2 overflow-x-auto pb-2">
+            {photoStrip.map((p, i) => (
+              <button
+                key={`${p.id}-${i}`}
+                onClick={() => setLightbox(i)}
+                className="h-24 w-24 shrink-0 snap-start overflow-hidden rounded-2xl border border-hairline transition-transform hover:scale-[1.03] md:h-28 md:w-28"
+                aria-label={`Открыть фото ${i + 1}`}
+              >
+                <img src={p.src} alt="" className="h-full w-full object-cover" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {productReviews.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {(
+            [
+              ["all", `Все · ${productReviews.length}`],
+              ["photo", `С фото · ${productReviews.filter((r) => (r.photos?.length ?? 0) > 0).length}`],
+              ["5", "★ 5"],
+              ["4", "★ 4"],
+              ["3", "★ 3"],
+              ["low", "★ 1–2"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setFilter(id)}
+              className={`rounded-full border px-3.5 py-1.5 text-[12px] transition-colors ${
+                filter === id
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-hairline bg-surface text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_400px]">
         <ul className="space-y-6">
           {reviews.length === 0 && (
             <li className="text-[14px] text-muted-foreground">
-              Пока нет отзывов — будьте первым.
+              {productReviews.length === 0
+                ? "Пока нет отзывов — будьте первым."
+                : "По этому фильтру отзывов нет."}
             </li>
           )}
           {reviews.map((r) => (
@@ -441,6 +539,79 @@ function ReviewsSection({
           )}
         </div>
       </div>
+
+      <PhotoLightbox
+        photos={photoStrip.map((p) => p.src)}
+        index={lightbox}
+        onClose={() => setLightbox(null)}
+      />
     </section>
+  );
+}
+
+function PhotoLightbox({
+  photos,
+  index,
+  onClose,
+}: {
+  photos: string[];
+  index: number | null;
+  onClose: () => void;
+}) {
+  const [i, setI] = useState(0);
+  useMemo(() => {
+    if (index !== null) setI(index);
+  }, [index]);
+  if (index === null || photos.length === 0) return null;
+  const prev = () => setI((v) => (v - 1 + photos.length) % photos.length);
+  const next = () => setI((v) => (v + 1) % photos.length);
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/85 p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+    >
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white backdrop-blur"
+        aria-label="Закрыть"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      {photos.length > 1 && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              prev();
+            }}
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white backdrop-blur"
+            aria-label="Предыдущее"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              next();
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white backdrop-blur"
+            aria-label="Следующее"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </>
+      )}
+      <img
+        src={photos[i]}
+        alt=""
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[86vh] max-w-full rounded-2xl object-contain"
+      />
+    </div>
   );
 }

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as LifeRouteImport } from './routes/life'
 import { Route as GiftRouteImport } from './routes/gift'
@@ -39,6 +40,11 @@ import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
 import { Route as AdminChatsRouteImport } from './routes/admin.chats'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupportRoute = SupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/gift': typeof GiftRoute
   '/life': typeof LifeRoute
   '/support': typeof SupportRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/gift'
     | '/life'
     | '/support'
+    | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/gift'
     | '/life'
     | '/support'
+    | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/gift'
     | '/life'
     | '/support'
+    | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
     | '/admin/orders'
@@ -386,6 +398,7 @@ export interface RootRouteChildren {
   GiftRoute: typeof GiftRoute
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
+  WishlistRoute: typeof WishlistRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
@@ -397,6 +410,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/support': {
       id: '/support'
       path: '/support'
@@ -652,6 +672,7 @@ const rootRouteChildren: RootRouteChildren = {
   GiftRoute: GiftRoute,
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
+  WishlistRoute: WishlistRoute,
   CatalogSlugRoute: CatalogSlugRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
