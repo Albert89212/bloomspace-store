@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { Eye } from "lucide-react";
+import { useState } from "react";
 import { formatPrice, type Product } from "@/lib/products";
+import { WishlistButton } from "./WishlistButton";
+import { QuickView } from "./QuickView";
 
 const catAccent: Record<string, string> = {
   benches: "var(--brand)",
@@ -23,7 +27,9 @@ const catLabel: Record<string, string> = {
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const accent = catAccent[product.category] ?? "var(--brand)";
+  const [quick, setQuick] = useState<Product | null>(null);
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -52,6 +58,21 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accent }} />
             {catLabel[product.category] ?? "Модель"}
           </span>
+          <div className="absolute right-3 top-3 z-10 flex flex-col gap-1.5">
+            <WishlistButton productId={product.id} />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setQuick(product);
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-background/85 p-2 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 hover:bg-background"
+              aria-label="Быстрый просмотр"
+            >
+              <Eye className="h-[18px] w-[18px] text-muted-foreground" />
+            </button>
+          </div>
           <motion.img
             src={product.image}
             alt={product.name}
@@ -74,5 +95,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
         </div>
       </Link>
     </motion.div>
+    <QuickView product={quick} onClose={() => setQuick(null)} />
+    </>
   );
 }
