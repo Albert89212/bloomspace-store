@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Send, Youtube, Instagram } from "lucide-react";
+import { Youtube, Instagram, MessageCircle } from "lucide-react";
 import { company } from "@/lib/company";
 
 export function SiteFooter() {
@@ -13,9 +13,6 @@ export function SiteFooter() {
               Премиальная садовая мебель. Разработано в Москве, произведено в России.
             </p>
             <div className="mt-5 flex items-center gap-2">
-              <SocialLink href="https://t.me/sadova" label="Telegram">
-                <Send className="h-4 w-4" />
-              </SocialLink>
               <SocialLink href="https://vk.com/sadova" label="ВКонтакте">
                 <span className="text-[11px] font-bold">VK</span>
               </SocialLink>
@@ -24,6 +21,9 @@ export function SiteFooter() {
               </SocialLink>
               <SocialLink href="https://instagram.com/sadova" label="Instagram">
                 <Instagram className="h-4 w-4" />
+              </SocialLink>
+              <SocialLink href="/support" label="Написать в поддержку">
+                <MessageCircle className="h-4 w-4" />
               </SocialLink>
             </div>
           </div>

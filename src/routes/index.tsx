@@ -172,23 +172,23 @@ function Index() {
             className="md:row-span-2"
             image={hero}
             title="Скамейки"
-            to="/catalog"
+            cat="benches"
             tall
           />
           <CollectionTile
             image={sofaImg}
             title="Диваны и лаунж"
-            to="/catalog"
+            cat="sofas"
           />
           <CollectionTile
             image={tableImg}
             title="Столы"
-            to="/catalog"
+            cat="tables"
           />
           <CollectionTile
             image={loungerImg}
             title="Шезлонги"
-            to="/catalog"
+            cat="loungers"
             wide
           />
         </div>
@@ -332,14 +332,14 @@ function Index() {
 function CollectionTile({
   image,
   title,
-  to,
+  cat,
   tall,
   wide,
   className,
 }: {
   image: string;
   title: string;
-  to: string;
+  cat: "benches" | "sides" | "chairs" | "tables" | "sofas" | "loungers" | "accessories";
   tall?: boolean;
   wide?: boolean;
   className?: string;
@@ -354,7 +354,8 @@ function CollectionTile({
       className={className}
     >
       <Link
-        to={to}
+        to="/catalog"
+        search={{ cat }}
         className={`group relative block h-full overflow-hidden rounded-3xl bg-surface ${
           tall ? "min-h-[420px] md:min-h-full" : wide ? "min-h-[220px] md:col-span-2" : "min-h-[220px]"
         }`}
