@@ -34,6 +34,11 @@ export interface Order {
   contractAccepted: boolean;
   contractIp: string;
   messages: OrderMessage[];
+  deleteRequest?: {
+    by: "client" | "staff";
+    byName: string;
+    at: number;
+  } | null;
 }
 
 interface OrdersState {
@@ -43,6 +48,16 @@ interface OrdersState {
   addMessage: (
     orderId: string,
     m: Omit<OrderMessage, "id" | "createdAt">,
+  ) => void;
+  requestDeleteMessages: (
+    orderId: string,
+    by: "client" | "staff",
+    byName: string,
+  ) => void;
+  cancelDeleteRequest: (orderId: string) => void;
+  confirmDeleteMessages: (
+    orderId: string,
+    by: "client" | "staff",
   ) => void;
   pruneOldMessages: () => void;
 }
@@ -82,6 +97,28 @@ export const useOrders = create<OrdersState>()(
                 }
               : o,
           ),
+        })),
+      requestDeleteMessages: (orderId, by, byName) =>
+        set((s) => ({
+          items: s.items.map((o) =>
+            o.id === orderId
+              ? { ...o, deleteRequest: { by, byName, at: Date.now() } }
+              : o,
+          ),
+        })),
+      cancelDeleteRequest: (orderId) =>
+        set((s) => ({
+          items: s.items.map((o) =>
+            o.id === orderId ? { ...o, deleteRequest: null } : o,
+          ),
+        })),
+      confirmDeleteMessages: (orderId, by) =>
+        set((s) => ({
+          items: s.items.map((o) => {
+            if (o.id !== orderId) return o;
+            if (!o.deleteRequest || o.deleteRequest.by === by) return o;
+            return { ...o, messages: [], deleteRequest: null };
+          }),
         })),
       pruneOldMessages: () => {
         const now = Date.now();
