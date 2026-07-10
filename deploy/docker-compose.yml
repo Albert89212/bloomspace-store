@@ -1,0 +1,30 @@
+# Опциональный запуск через Docker (для VPS с Docker)
+# docker compose -f deploy/docker-compose.yml up -d
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: sadova
+      MYSQL_USER: sadova
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changemeroot}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: always
+    depends_on: [db]
+    env_file: ../.env
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  db_data:
