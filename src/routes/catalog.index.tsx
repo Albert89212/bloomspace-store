@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductCardSkeleton } from "@/components/Skeleton";
 import { categories, type Category } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
+import { EditableText } from "@/components/Editable";
 
 export const Route = createFileRoute("/catalog/")({
   validateSearch: (s: Record<string, unknown>) =>
@@ -100,9 +101,11 @@ function CatalogPage() {
         transition={{ duration: 0.6 }}
       >
         <div className="text-[13px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          Каталог
+          <EditableText id="catalog.kicker" defaultValue="Каталог" />
         </div>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-6xl">Все модели</h1>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-6xl">
+          <EditableText id="catalog.title" defaultValue="Все модели" />
+        </h1>
       </motion.div>
 
       <div className="mt-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
