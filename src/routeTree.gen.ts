@@ -28,8 +28,11 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as OrderNumberRouteImport } from './routes/order.$number'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalRulesRouteImport } from './routes/legal.rules'
+import { Route as LegalReturnRouteImport } from './routes/legal.return'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
+import { Route as LegalCookiesRouteImport } from './routes/legal.cookies'
+import { Route as LegalConsentRouteImport } from './routes/legal.consent'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -138,6 +141,11 @@ const LegalRulesRoute = LegalRulesRouteImport.update({
   path: '/legal/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalReturnRoute = LegalReturnRouteImport.update({
+  id: '/legal/return',
+  path: '/legal/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
@@ -146,6 +154,16 @@ const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
 const LegalOfferRoute = LegalOfferRouteImport.update({
   id: '/legal/offer',
   path: '/legal/offer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/legal/cookies',
+  path: '/legal/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalConsentRoute = LegalConsentRouteImport.update({
+  id: '/legal/consent',
+  path: '/legal/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogSlugRoute = CatalogSlugRouteImport.update({
@@ -236,8 +254,11 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
+  '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -270,8 +291,11 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
+  '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -306,8 +330,11 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
+  '/legal/consent': typeof LegalConsentRoute
+  '/legal/cookies': typeof LegalCookiesRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -343,8 +370,11 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
+    | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -377,8 +407,11 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
+    | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -412,8 +445,11 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
+    | '/legal/consent'
+    | '/legal/cookies'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -438,8 +474,11 @@ export interface RootRouteChildren {
   WishlistRoute: typeof WishlistRoute
   ApiChatRoute: typeof ApiChatRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
+  LegalConsentRoute: typeof LegalConsentRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalReturnRoute: typeof LegalReturnRoute
   LegalRulesRoute: typeof LegalRulesRoute
   LegalTermsRoute: typeof LegalTermsRoute
   OrderNumberRoute: typeof OrderNumberRoute
@@ -581,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/return': {
+      id: '/legal/return'
+      path: '/legal/return'
+      fullPath: '/legal/return'
+      preLoaderRoute: typeof LegalReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/privacy': {
       id: '/legal/privacy'
       path: '/legal/privacy'
@@ -593,6 +639,20 @@ declare module '@tanstack/react-router' {
       path: '/legal/offer'
       fullPath: '/legal/offer'
       preLoaderRoute: typeof LegalOfferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/legal/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/consent': {
+      id: '/legal/consent'
+      path: '/legal/consent'
+      fullPath: '/legal/consent'
+      preLoaderRoute: typeof LegalConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalog/$slug': {
@@ -737,8 +797,11 @@ const rootRouteChildren: RootRouteChildren = {
   WishlistRoute: WishlistRoute,
   ApiChatRoute: ApiChatRoute,
   CatalogSlugRoute: CatalogSlugRoute,
+  LegalConsentRoute: LegalConsentRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalReturnRoute: LegalReturnRoute,
   LegalRulesRoute: LegalRulesRoute,
   LegalTermsRoute: LegalTermsRoute,
   OrderNumberRoute: OrderNumberRoute,
