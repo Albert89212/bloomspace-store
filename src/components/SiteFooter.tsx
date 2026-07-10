@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Youtube, Instagram, MessageCircle } from "lucide-react";
 import { company } from "@/lib/company";
+import { EditableText, EditableLink } from "@/components/Editable";
 
 export function SiteFooter() {
   return (
@@ -10,21 +11,42 @@ export function SiteFooter() {
           <div>
             <div className="text-[15px] font-semibold tracking-tight">SADOVA</div>
             <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-muted-foreground">
-              Премиальная садовая мебель. Разработано в Москве, произведено в России.
+              <EditableText
+                id="footer.slogan"
+                multiline
+                defaultValue="Премиальная садовая мебель. Разработано в Москве, произведено в России."
+              />
             </p>
             <div className="mt-5 flex items-center gap-2">
-              <SocialLink href="https://vk.com/sadova" label="ВКонтакте">
+              <EditableLink
+                id="footer.social.vk"
+                defaultHref="https://vk.com/sadova"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
                 <span className="text-[11px] font-bold">VK</span>
-              </SocialLink>
-              <SocialLink href="https://youtube.com/@sadova" label="YouTube">
+              </EditableLink>
+              <EditableLink
+                id="footer.social.youtube"
+                defaultHref="https://youtube.com/@sadova"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
                 <Youtube className="h-4 w-4" />
-              </SocialLink>
-              <SocialLink href="https://instagram.com/sadova" label="Instagram">
+              </EditableLink>
+              <EditableLink
+                id="footer.social.instagram"
+                defaultHref="https://instagram.com/sadova"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
                 <Instagram className="h-4 w-4" />
-              </SocialLink>
-              <SocialLink href="/support" label="Написать в поддержку">
+              </EditableLink>
+              <EditableLink
+                id="footer.social.support"
+                defaultHref="/support"
+                external={false}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
+              >
                 <MessageCircle className="h-4 w-4" />
-              </SocialLink>
+              </EditableLink>
             </div>
           </div>
           <FooterCol
@@ -81,28 +103,6 @@ export function SiteFooter() {
         </div>
       </div>
     </footer>
-  );
-}
-
-function SocialLink({
-  href,
-  label,
-  children,
-}: {
-  href: string;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted-foreground transition-colors hover:bg-foreground hover:text-background"
-    >
-      {children}
-    </a>
   );
 }
 
