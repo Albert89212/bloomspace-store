@@ -6,6 +6,7 @@ import { useCart, selectCartCount } from "@/lib/cart-store";
 import { useAdmin } from "@/lib/admin-store";
 import { PushBell } from "./PushBell";
 import { useCurrentUser } from "@/lib/auth-store";
+import { ThemeToggle, ThemeToggleCompact } from "./ThemeToggle";
 
 const nav = [
   { to: "/", label: "Главная" },
@@ -59,6 +60,8 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <ThemeToggleCompact />
           {user && <PushBell />}
           {isAdmin && (
             <Link
