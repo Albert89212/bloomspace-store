@@ -4,4 +4,4 @@ Disallow: /admin
 Disallow: /order/
 Disallow: /checkout
 
-Sitemap: /sitemap.xml
+Sitemap: https://bloomspace-store.lovable.app/sitemap.xml
