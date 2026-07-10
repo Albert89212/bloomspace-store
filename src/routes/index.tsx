@@ -137,7 +137,7 @@ function Index() {
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent-cool)" }} />
-              СДЭК · Ozon · Почта России
+              Ozon · Почта России · Курьер
             </span>
             <span className="hidden md:inline-flex items-center gap-2">Оплата: СБП, карта, ЮKassa</span>
           </div>
