@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { company } from "@/lib/company";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/cookies")({
-  head: () => ({
-    meta: [
-      { title: "Политика использования cookies — SADOVA" },
-      {
-        name: "description",
-        content: "Как SADOVA использует cookies и другие технологии отслеживания.",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/cookies",
+      "Политика использования cookies — SADOVA",
+      "Как SADOVA использует файлы cookies, localStorage и аналогичные технологии на сайте.",
+    ),
   component: CookiesPage,
 });
 
