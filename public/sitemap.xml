@@ -19,4 +19,7 @@
   <url><loc>/legal/privacy</loc><priority>0.3</priority></url>
   <url><loc>/legal/rules</loc><priority>0.3</priority></url>
   <url><loc>/legal/terms</loc><priority>0.3</priority></url>
+  <url><loc>/legal/return</loc><priority>0.3</priority></url>
+  <url><loc>/legal/cookies</loc><priority>0.3</priority></url>
+  <url><loc>/legal/consent</loc><priority>0.3</priority></url>
 </urlset>
