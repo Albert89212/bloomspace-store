@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { EditableText } from "@/components/Editable";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -22,7 +23,10 @@ function AboutPage() {
         transition={{ duration: 0.6 }}
         className="text-4xl font-semibold tracking-tight md:text-6xl"
       >
-        Мебель, спроектированная для жизни на воздухе.
+        <EditableText
+          id="about.hero.title"
+          defaultValue="Мебель, спроектированная для жизни на воздухе."
+        />
       </motion.h1>
       <motion.p
         initial={false}
@@ -30,9 +34,11 @@ function AboutPage() {
         transition={{ duration: 0.6, delay: 0.1 }}
         className="mt-8 text-[17px] leading-relaxed text-muted-foreground"
       >
-        SADOVA — российский бренд премиальной садовой мебели. Мы работаем с материалами, которые
-        выдерживают всё: тик, анодированный алюминий, порошковая сталь, композитный камень. Каждая
-        деталь проходит контроль вручную.
+        <EditableText
+          id="about.hero.body"
+          multiline
+          defaultValue="SADOVA — российский бренд премиальной садовой мебели. Мы работаем с материалами, которые выдерживают всё: тик, анодированный алюминий, порошковая сталь, композитный камень. Каждая деталь проходит контроль вручную."
+        />
       </motion.p>
     </div>
   );

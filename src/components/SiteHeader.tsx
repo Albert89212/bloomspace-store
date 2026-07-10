@@ -49,12 +49,12 @@ export function SiteHeader() {
           SADOVA
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden min-w-0 items-center gap-6 lg:flex xl:gap-8">
           {nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+              className="whitespace-nowrap text-[13px] text-muted-foreground transition-colors hover:text-foreground"
               activeProps={{ className: "text-foreground" }}
             >
               {item.label}
@@ -62,7 +62,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <ThemeToggle />
           <ThemeToggleCompact />
           {user && <PushBell />}
@@ -129,7 +129,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:hidden"
+            className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:hidden"
             aria-label="Меню"
           >
             <Menu className="h-[18px] w-[18px]" />
@@ -146,7 +146,7 @@ export function SiteHeader() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
               onClick={() => setOpen(false)}
             />
             <motion.aside
@@ -154,7 +154,7 @@ export function SiteHeader() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-[84%] max-w-sm flex-col bg-background md:hidden"
+              className="fixed right-0 top-0 z-50 flex h-full w-[84%] max-w-sm flex-col bg-background lg:hidden"
             >
               <div className="flex h-14 items-center justify-between border-b border-hairline px-5">
                 <span className="text-[15px] font-semibold">Меню</span>
