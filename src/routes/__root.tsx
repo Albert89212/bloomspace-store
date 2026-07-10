@@ -19,6 +19,7 @@ import { SiteHeader } from "../components/SiteHeader";
 import { SiteFooter } from "../components/SiteFooter";
 import { SupportChatWidget } from "../components/SupportChatWidget";
 import { OwnerEditToggle } from "../components/Editable";
+import { initTheme } from "../lib/theme-store";
 
 function NotFoundComponent() {
   return (
@@ -124,6 +125,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    initTheme();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
