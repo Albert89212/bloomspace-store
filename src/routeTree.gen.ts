@@ -15,6 +15,7 @@ import { Route as LifeRouteImport } from './routes/life'
 import { Route as GiftRouteImport } from './routes/gift'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ChatsRouteImport } from './routes/chats'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as B2bRouteImport } from './routes/b2b'
@@ -38,6 +39,7 @@ import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminNewsRouteImport } from './routes/admin.news'
 import { Route as AdminLifeRouteImport } from './routes/admin.life'
 import { Route as AdminChatsRouteImport } from './routes/admin.chats'
 
@@ -69,6 +71,11 @@ const DeliveryRoute = DeliveryRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatsRoute = ChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -186,6 +193,11 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNewsRoute = AdminNewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminLifeRoute = AdminLifeRouteImport.update({
   id: '/life',
   path: '/life',
@@ -205,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
+  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -213,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -237,6 +251,7 @@ export interface FileRoutesByTo {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
+  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -245,6 +260,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -271,6 +287,7 @@ export interface FileRoutesById {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
+  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -279,6 +296,7 @@ export interface FileRoutesById {
   '/wishlist': typeof WishlistRoute
   '/admin/chats': typeof AdminChatsRoute
   '/admin/life': typeof AdminLifeRoute
+  '/admin/news': typeof AdminNewsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -306,6 +324,7 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
+    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -314,6 +333,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
+    | '/admin/news'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/promocodes'
@@ -338,6 +358,7 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
+    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -346,6 +367,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
+    | '/admin/news'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/promocodes'
@@ -371,6 +393,7 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
+    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -379,6 +402,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/chats'
     | '/admin/life'
+    | '/admin/news'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/promocodes'
@@ -405,6 +429,7 @@ export interface RootRouteChildren {
   B2bRoute: typeof B2bRoute
   BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
+  ChatsRoute: typeof ChatsRoute
   CheckoutRoute: typeof CheckoutRoute
   DeliveryRoute: typeof DeliveryRoute
   GiftRoute: typeof GiftRoute
@@ -463,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chats': {
+      id: '/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof ChatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -626,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/news': {
+      id: '/admin/news'
+      path: '/news'
+      fullPath: '/admin/news'
+      preLoaderRoute: typeof AdminNewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/life': {
       id: '/admin/life'
       path: '/life'
@@ -646,6 +685,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminChatsRoute: typeof AdminChatsRoute
   AdminLifeRoute: typeof AdminLifeRoute
+  AdminNewsRoute: typeof AdminNewsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminPromocodesRoute: typeof AdminPromocodesRoute
@@ -658,6 +698,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminChatsRoute: AdminChatsRoute,
   AdminLifeRoute: AdminLifeRoute,
+  AdminNewsRoute: AdminNewsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminPromocodesRoute: AdminPromocodesRoute,
@@ -687,6 +728,7 @@ const rootRouteChildren: RootRouteChildren = {
   B2bRoute: B2bRoute,
   BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
+  ChatsRoute: ChatsRoute,
   CheckoutRoute: CheckoutRoute,
   DeliveryRoute: DeliveryRoute,
   GiftRoute: GiftRoute,
