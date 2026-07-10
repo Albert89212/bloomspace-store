@@ -31,6 +31,7 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AdminTicketsRouteImport } from './routes/admin.tickets'
 import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
@@ -150,6 +151,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BlogRoute,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTicketsRoute = AdminTicketsRouteImport.update({
   id: '/tickets',
   path: '/tickets',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/staff': typeof AdminStaffRoute
   '/admin/tickets': typeof AdminTicketsRoute
+  '/api/chat': typeof ApiChatRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/admin/reviews'
     | '/admin/staff'
     | '/admin/tickets'
+    | '/api/chat'
     | '/blog/$slug'
     | '/catalog/$slug'
     | '/legal/offer'
@@ -399,6 +411,7 @@ export interface RootRouteChildren {
   LifeRoute: typeof LifeRoute
   SupportRoute: typeof SupportRoute
   WishlistRoute: typeof WishlistRoute
+  ApiChatRoute: typeof ApiChatRoute
   CatalogSlugRoute: typeof CatalogSlugRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
@@ -564,6 +577,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof BlogRoute
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/tickets': {
       id: '/admin/tickets'
       path: '/tickets'
@@ -673,6 +693,7 @@ const rootRouteChildren: RootRouteChildren = {
   LifeRoute: LifeRoute,
   SupportRoute: SupportRoute,
   WishlistRoute: WishlistRoute,
+  ApiChatRoute: ApiChatRoute,
   CatalogSlugRoute: CatalogSlugRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
