@@ -25,10 +25,8 @@ const deliveryOptions: {
   pvz: boolean;
   icon: typeof Package;
 }[] = [
-  { id: "cdek", name: "СДЭК — ПВЗ", price: 390, hint: "1–4 дня. Более 3500 пунктов выдачи.", pvz: true, icon: Package },
-  { id: "boxberry", name: "Boxberry — ПВЗ", price: 390, hint: "2–5 дней. Постоматы и пункты выдачи.", pvz: true, icon: Package },
-  { id: "ozon", name: "Ozon — ПВЗ", price: 290, hint: "2–4 дня. Крупнейшая сеть ПВЗ в РФ.", pvz: true, icon: Package },
-  { id: "pochta", name: "Почта России", price: 350, hint: "3–10 дней. Отделения по всей стране.", pvz: false, icon: MapPin },
+  { id: "ozon", name: "Ozon — ПВЗ", price: 290, hint: "2–4 дня. Более 45 000 пунктов выдачи Ozon по всей РФ.", pvz: true, icon: Package },
+  { id: "pochta", name: "Почта России", price: 350, hint: "3–14 дней. Отделения в любой населённый пункт РФ.", pvz: false, icon: MapPin },
   { id: "courier", name: "Курьер до двери", price: 990, hint: "1–2 дня по крупным городам.", pvz: false, icon: Truck },
 ];
 
@@ -46,7 +44,7 @@ function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
-  const [delivery, setDelivery] = useState<DeliveryMethod>("cdek");
+  const [delivery, setDelivery] = useState<DeliveryMethod>("ozon");
   const [payment, setPayment] = useState<PaymentMethod>("sbp");
   const [offerAccepted, setOfferAccepted] = useState(true);
   const [privacyAccepted, setPrivacyAccepted] = useState(true);
@@ -63,8 +61,7 @@ function CheckoutPage() {
 
   const pvzMapUrl = useMemo(() => {
     if (!selected.pvz || !city.trim()) return null;
-    const provider =
-      delivery === "ozon" ? "Ozon" : delivery === "boxberry" ? "Boxberry" : "СДЭК";
+    const provider = delivery === "ozon" ? "Ozon" : "Почта России";
     const query = encodeURIComponent(`Пункт выдачи ${provider} ${city}`);
     return `https://yandex.ru/map-widget/v1/?text=${query}&z=12`;
   }, [selected.pvz, city, delivery]);
