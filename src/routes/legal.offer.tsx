@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { company } from "@/lib/company";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/offer")({
-  head: () => ({
-    meta: [
-      { title: "Публичная оферта — SADOVA" },
-      {
-        name: "description",
-        content: "Публичная оферта ИП Тогашева А. Д. на продажу товаров через интернет-магазин SADOVA.",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/offer",
+      "Публичная оферта — SADOVA",
+      "Публичная оферта ИП Тогашева А. Д. на продажу садовой мебели через интернет-магазин SADOVA.",
+    ),
   component: OfferPage,
 });
 

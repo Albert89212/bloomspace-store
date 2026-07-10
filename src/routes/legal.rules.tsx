@@ -1,17 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ScrollText } from "lucide-react";
+import { legalHead } from "@/lib/legal-head";
 
 export const Route = createFileRoute("/legal/rules")({
-  head: () => ({
-    meta: [
-      { title: "Правила магазина — SADOVA" },
-      {
-        name: "description",
-        content:
-          "Правила пользования интернет-магазином SADOVA: регистрация, заказы, отзывы, поведение в разделе «Жизнь».",
-      },
-    ],
-  }),
+  head: () =>
+    legalHead(
+      "/legal/rules",
+      "Правила магазина — SADOVA",
+      "Правила пользования интернет-магазином SADOVA: регистрация, заказы, отзывы, поведение в разделе «Жизнь».",
+    ),
   component: RulesPage,
 });
 
