@@ -76,7 +76,7 @@ export const useSupportChat = create<State>()(
 
 function pickAutoReply(q: string) {
   const l = q.toLowerCase();
-  if (l.includes("достав")) return "Доставляем СДЭК, Boxberry, Ozon и Почтой России. Подробности на странице /delivery.";
+  if (l.includes("достав")) return "Доставляем через ПВЗ Ozon и Почтой России, есть курьер по крупным городам. Подробности на /delivery.";
   if (l.includes("оплат")) return "Принимаем карты, СБП и ЮMoney через ЮKassa. Все платежи с 3-D Secure.";
   if (l.includes("возврат") || l.includes("гарант"))
     return "Возврат в течение 7 дней по ст. 26.1 ЗоЗПП. Заявление можно оформить в личном кабинете.";

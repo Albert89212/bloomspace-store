@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import type { CartItem } from "./cart-store";
 
 export type PaymentMethod = "card" | "sbp" | "yookassa";
-export type DeliveryMethod = "cdek" | "boxberry" | "ozon" | "pochta" | "courier";
+export type DeliveryMethod = "ozon" | "pochta" | "courier";
 export type OrderStatus = "new" | "paid" | "shipping" | "done" | "cancelled";
 
 export interface OrderMessage {

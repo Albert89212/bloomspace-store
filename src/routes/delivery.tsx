@@ -9,7 +9,7 @@ export const Route = createFileRoute("/delivery")({
       {
         name: "description",
         content:
-          "Способы доставки по России: СДЭК, Boxberry, ПВЗ Ozon, Почта России, курьер. Оплата картой, СБП и ЮKassa.",
+          "Способы доставки по России: ПВЗ Ozon, Почта России и курьер. Оплата картой, СБП и ЮKassa.",
       },
       { property: "og:title", content: "Доставка и оплата — SADOVA" },
       {
@@ -23,25 +23,9 @@ export const Route = createFileRoute("/delivery")({
 
 const delivery = [
   {
-    icon: Truck,
-    title: "СДЭК",
-    desc: "Доставка в ПВЗ и до двери по всей России. 2–7 дней.",
-    price: "от 350 ₽",
-    tint: "var(--brand)",
-    tintSoft: "var(--brand-soft)",
-  },
-  {
-    icon: Package,
-    title: "Boxberry",
-    desc: "Пункты выдачи в 700+ городах. 3–8 дней.",
-    price: "от 320 ₽",
-    tint: "#E20613",
-    tintSoft: "oklch(0.95 0.05 25)",
-  },
-  {
     icon: MapPin,
     title: "ПВЗ Ozon",
-    desc: "Более 45 000 точек выдачи по стране. 2–6 дней.",
+    desc: "Основной способ. Более 45 000 точек выдачи Ozon по всей стране. 2–6 дней.",
     price: "от 290 ₽",
     tint: "#005BFF",
     tintSoft: "oklch(0.95 0.04 250)",
@@ -49,7 +33,7 @@ const delivery = [
   {
     icon: Building2,
     title: "Почта России",
-    desc: "Доставка в любой населённый пункт РФ. 5–14 дней.",
+    desc: "Доставка в любой населённый пункт РФ, включая сёла. 5–14 дней.",
     price: "от 250 ₽",
     tint: "#1A3E7C",
     tintSoft: "oklch(0.95 0.03 250)",
@@ -99,7 +83,7 @@ function DeliveryPage() {
           Доставка и оплата
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Доставляем по всей России пятью способами и принимаем оплату всеми популярными методами.
+          Доставляем по всей России через ПВЗ Ozon и Почту России, а также курьером по крупным городам.
           Все переводы защищены — сертификаты PCI DSS у платёжных партнёров.
         </p>
       </motion.div>
