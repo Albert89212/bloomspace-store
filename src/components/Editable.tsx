@@ -197,3 +197,62 @@ export function OwnerEditToggle() {
     </button>
   );
 }
+
+/** Редактируемая ссылка: подпись + URL. Владелец меняет обе части. */
+export function EditableLink({
+  id,
+  defaultHref,
+  defaultLabel,
+  className,
+  external = true,
+  children,
+}: {
+  id: string;
+  defaultHref: string;
+  defaultLabel?: string;
+  className?: string;
+  external?: boolean;
+  children?: React.ReactNode;
+}) {
+  const href = useCms((s) => s.values[`${id}.href`] ?? defaultHref);
+  const label = useCms((s) => s.values[`${id}.label`] ?? defaultLabel ?? "");
+  const setVal = useCms((s) => s.set);
+  const canEdit = useCanEdit();
+
+  const anchor = (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      className={className}
+      aria-label={label || undefined}
+    >
+      {children ?? label}
+    </a>
+  );
+
+  if (!canEdit) return anchor;
+
+  return (
+    <span className="relative inline-block">
+      {anchor}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const newHref = window.prompt("URL ссылки", href);
+          if (newHref) setVal(`${id}.href`, newHref);
+          if (defaultLabel !== undefined) {
+            const newLabel = window.prompt("Подпись (текст)", label);
+            if (newLabel !== null) setVal(`${id}.label`, newLabel);
+          }
+        }}
+        title="Редактировать ссылку"
+        className="absolute -right-2 -top-2 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--brand)] text-white shadow-lg"
+      >
+        <Pencil className="h-2.5 w-2.5" />
+      </button>
+    </span>
+  );
+}
