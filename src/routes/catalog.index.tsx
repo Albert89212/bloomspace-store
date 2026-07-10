@@ -1,12 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { z } from "zod";
 import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { categories, type Category } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
 
 export const Route = createFileRoute("/catalog/")({
+  validateSearch: (s: Record<string, unknown>) =>
+    z
+      .object({
+        cat: z
+          .enum([
+            "all",
+            "benches",
+            "sides",
+            "chairs",
+            "tables",
+            "sofas",
+            "loungers",
+            "accessories",
+          ])
+          .optional(),
+        q: z.string().optional(),
+      })
+      .parse(s),
   head: () => ({
     meta: [
       { title: "Каталог садовой мебели: скамейки, столы, боковины — SADOVA" },
@@ -46,8 +65,13 @@ export const Route = createFileRoute("/catalog/")({
 });
 
 function CatalogPage() {
-  const [active, setActive] = useState<Category | "all">("all");
-  const [q, setQ] = useState("");
+  const search = Route.useSearch();
+  const [active, setActive] = useState<Category | "all">(search.cat ?? "all");
+  const [q, setQ] = useState(search.q ?? "");
+  useEffect(() => {
+    if (search.cat && search.cat !== active) setActive(search.cat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.cat]);
   const products = useProducts((s) => s.items);
   const filtered = useMemo(
     () =>
