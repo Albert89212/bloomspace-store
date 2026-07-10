@@ -16,8 +16,8 @@ ssh root@ВАШ_IP
 apt update && apt upgrade -y
 apt install -y curl git nginx mysql-server certbot python3-certbot-nginx ufw
 
-# Node.js 20 LTS
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# Node.js 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt install -y nodejs
 
 # Bun (проект собирается на Bun)
@@ -82,7 +82,7 @@ A-запись `@` → IP VPS, A-запись `www` → IP VPS. Ждём 15–60
 1. Панель Beget → **Сайты** → создать сайт `sadova.ru`.
 2. Панель → **MySQL** → создать БД `login_sadova`, пользователя, пароль.
 3. Панель → **Node.js** → создать приложение:
-   - Версия: **Node.js 20**
+   - Версия: **Node.js 22**
    - Директория: `/home/login/sadova.ru/public_html`
    - Стартовый файл: `.output/server/index.mjs`
    - Переменные окружения: скопировать из `.env.example`
@@ -90,8 +90,10 @@ A-запись `@` → IP VPS, A-запись `www` → IP VPS. Ждём 15–60
 5. В терминале Beget (SSH):
    ```bash
    cd ~/sadova.ru/public_html
-   npm ci
-   npx prisma migrate deploy
+   rm -rf node_modules package-lock.json
+   npm install
+   npx prisma@5.22.0 generate
+   npx prisma@5.22.0 migrate deploy
    npm run build
    ```
 6. В панели Node.js нажмите **Перезапустить**.
