@@ -28,6 +28,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as OrderNumberRouteImport } from './routes/order.$number'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalRulesRouteImport } from './routes/legal.rules'
+import { Route as LegalReturnRouteImport } from './routes/legal.return'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalOfferRouteImport } from './routes/legal.offer'
 import { Route as CatalogSlugRouteImport } from './routes/catalog.$slug'
@@ -138,6 +139,11 @@ const LegalRulesRoute = LegalRulesRouteImport.update({
   path: '/legal/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalReturnRoute = LegalReturnRouteImport.update({
+  id: '/legal/return',
+  path: '/legal/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/catalog/$slug': typeof CatalogSlugRoute
   '/legal/offer': typeof LegalOfferRoute
   '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/return': typeof LegalReturnRoute
   '/legal/rules': typeof LegalRulesRoute
   '/legal/terms': typeof LegalTermsRoute
   '/order/$number': typeof OrderNumberRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/catalog/$slug'
     | '/legal/offer'
     | '/legal/privacy'
+    | '/legal/return'
     | '/legal/rules'
     | '/legal/terms'
     | '/order/$number'
@@ -440,6 +452,7 @@ export interface RootRouteChildren {
   CatalogSlugRoute: typeof CatalogSlugRoute
   LegalOfferRoute: typeof LegalOfferRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalReturnRoute: typeof LegalReturnRoute
   LegalRulesRoute: typeof LegalRulesRoute
   LegalTermsRoute: typeof LegalTermsRoute
   OrderNumberRoute: typeof OrderNumberRoute
@@ -579,6 +592,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/rules'
       fullPath: '/legal/rules'
       preLoaderRoute: typeof LegalRulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/return': {
+      id: '/legal/return'
+      path: '/legal/return'
+      fullPath: '/legal/return'
+      preLoaderRoute: typeof LegalReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/privacy': {
@@ -739,6 +759,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogSlugRoute: CatalogSlugRoute,
   LegalOfferRoute: LegalOfferRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalReturnRoute: LegalReturnRoute,
   LegalRulesRoute: LegalRulesRoute,
   LegalTermsRoute: LegalTermsRoute,
   OrderNumberRoute: OrderNumberRoute,
