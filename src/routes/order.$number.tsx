@@ -121,6 +121,9 @@ function OrderChat({ orderId }: { orderId: string }) {
   const user = useCurrentUser();
   const order = useOrders((s) => s.items.find((o) => o.id === orderId));
   const addMessage = useOrders((s) => s.addMessage);
+  const requestDelete = useOrders((s) => s.requestDeleteMessages);
+  const cancelDelete = useOrders((s) => s.cancelDeleteRequest);
+  const confirmDelete = useOrders((s) => s.confirmDeleteMessages);
   const [text, setText] = useState("");
 
   if (!order) return null;
@@ -162,6 +165,11 @@ function OrderChat({ orderId }: { orderId: string }) {
     setText("");
   }
 
+  const mySide: "client" | "staff" = isStaff ? "staff" : "client";
+  const req = order.deleteRequest;
+  const iRequested = req?.by === mySide;
+  const otherRequested = req && req.by !== mySide;
+
   return (
     <div className="mt-6 rounded-3xl bg-surface p-6">
       <div className="flex items-center justify-between">
@@ -199,6 +207,62 @@ function OrderChat({ orderId }: { orderId: string }) {
           })
         )}
       </div>
+
+      {order.messages.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-hairline bg-background p-3 text-[12px]">
+          {!req && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-muted-foreground">
+                Удалить переписку можно только по взаимному согласию сторон.
+              </span>
+              <button
+                onClick={() =>
+                  user && requestDelete(orderId, mySide, user.name)
+                }
+                className="rounded-full border border-hairline px-3 py-1.5 font-medium hover:bg-secondary"
+              >
+                Предложить удалить
+              </button>
+            </div>
+          )}
+          {iRequested && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-muted-foreground">
+                Запрос на удаление отправлен. Ожидаем подтверждение второй стороны.
+              </span>
+              <button
+                onClick={() => cancelDelete(orderId)}
+                className="rounded-full border border-hairline px-3 py-1.5 font-medium hover:bg-secondary"
+              >
+                Отменить запрос
+              </button>
+            </div>
+          )}
+          {otherRequested && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-muted-foreground">
+                {req!.by === "staff" ? "Поддержка" : "Покупатель"} ({req!.byName})
+                предлагает удалить переписку.
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => cancelDelete(orderId)}
+                  className="rounded-full border border-hairline px-3 py-1.5 font-medium hover:bg-secondary"
+                >
+                  Отклонить
+                </button>
+                <button
+                  onClick={() => confirmDelete(orderId, mySide)}
+                  className="rounded-full bg-foreground px-3 py-1.5 font-medium text-background"
+                >
+                  Согласен, удалить
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="mt-4 flex gap-2">
         <input
           value={text}
