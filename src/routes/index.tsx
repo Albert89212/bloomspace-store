@@ -172,30 +172,22 @@ function Index() {
             className="md:row-span-2"
             image={hero}
             title="Скамейки"
-            subtitle="Тик · Сталь"
-            accent="var(--accent-warm)"
             to="/catalog"
             tall
           />
           <CollectionTile
             image={sofaImg}
             title="Диваны и лаунж"
-            subtitle="Модульные системы"
-            accent="var(--accent-cool)"
             to="/catalog"
           />
           <CollectionTile
             image={tableImg}
             title="Столы"
-            subtitle="HPL · Массив"
-            accent="var(--brand)"
             to="/catalog"
           />
           <CollectionTile
             image={loungerImg}
             title="Шезлонги"
-            subtitle="Для террас и бассейнов"
-            accent="var(--accent-warm)"
             to="/catalog"
             wide
           />
@@ -223,22 +215,6 @@ function Index() {
               собирается вручную из тика класса «А» и порошково окрашенной стали —
               материалов, которые с годами становятся только красивее.
             </p>
-            <div className="mt-7 flex flex-wrap gap-2">
-              {[
-                { label: "Тик", color: "var(--accent-warm)" },
-                { label: "Алюминий", color: "var(--accent-cool)" },
-                { label: "Ротанг", color: "var(--brand)" },
-                { label: "HPL-камень", color: "#7a7a7a" },
-              ].map((m) => (
-                <span
-                  key={m.label}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-background px-3 py-1 text-[12px]"
-                >
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: m.color }} />
-                  {m.label}
-                </span>
-              ))}
-            </div>
           </div>
           <div className="grid grid-cols-3 gap-4 self-center text-center sm:gap-6">
             {[
@@ -309,8 +285,8 @@ function Index() {
           {[
             {
               icon: Truck,
-              title: "Бесплатная доставка",
-              body: "От 30 000 ₽ по всей России",
+              title: "Доставка по РФ",
+              body: "Ozon ПВЗ, Почта России, курьер — по тарифу перевозчика",
               color: "var(--brand)",
             },
             {
@@ -356,8 +332,6 @@ function Index() {
 function CollectionTile({
   image,
   title,
-  subtitle,
-  accent,
   to,
   tall,
   wide,
@@ -365,8 +339,6 @@ function CollectionTile({
 }: {
   image: string;
   title: string;
-  subtitle: string;
-  accent: string;
   to: string;
   tall?: boolean;
   wide?: boolean;
@@ -398,23 +370,20 @@ function CollectionTile({
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.78) 100%)",
           }}
         />
         <div
           aria-hidden
           className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
           style={{
-            background: `radial-gradient(80% 60% at 50% 100%, color-mix(in oklab, ${accent} 55%, transparent), transparent 70%)`,
+            background:
+              "radial-gradient(80% 60% at 50% 100%, rgba(0,0,0,0.35), transparent 70%)",
           }}
         />
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white sm:p-6">
           <div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/75">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: accent }} />
-              {subtitle}
-            </div>
-            <div className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
+            <div className="text-xl font-semibold tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] sm:text-2xl md:text-3xl">
               {title}
             </div>
           </div>
