@@ -1,9 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product, Category } from "./products";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 interface ProductsState {
   items: Product[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   create: (p: Omit<Product, "id" | "rating">) => Product;
   update: (id: string, patch: Partial<Product>) => void;
   remove: (id: string) => void;
@@ -35,20 +38,45 @@ export const useProducts = create<ProductsState>()(
   persist(
     (set, get) => ({
       items: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
+          if (Array.isArray(remote) && remote.length) {
+            set({ items: remote, _hydrated: true });
+          } else {
+            set({ _hydrated: true });
+          }
+        } catch {
+          set({ _hydrated: true });
+        }
+      },
       create: (p) => {
         const base = p.slug?.trim() ? slugify(p.slug) : slugify(p.name);
         let slug = base || uid();
         let n = 2;
         while (get().items.some((x) => x.slug === slug)) slug = `${base}-${n++}`;
         const product: Product = { ...p, slug, id: uid(), rating: 5 };
-        set((s) => ({ items: [product, ...s.items] }));
+        set((s) => {
+          const items = [product, ...s.items];
+          void saveCollection({ data: { name: "products", items } }).catch(() => {});
+          return { items };
+        });
         return product;
       },
       update: (id, patch) =>
-        set((s) => ({
-          items: s.items.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-        })),
-      remove: (id) => set((s) => ({ items: s.items.filter((x) => x.id !== id) })),
+        set((s) => {
+          const items = s.items.map((x) => (x.id === id ? { ...x, ...patch } : x));
+          void saveCollection({ data: { name: "products", items } }).catch(() => {});
+          return { items };
+        }),
+      remove: (id) =>
+        set((s) => {
+          const items = s.items.filter((x) => x.id !== id);
+          void saveCollection({ data: { name: "products", items } }).catch(() => {});
+          return { items };
+        }),
       findBySlug: (slug) => get().items.find((x) => x.slug === slug),
     }),
     { name: "sadova-products" },

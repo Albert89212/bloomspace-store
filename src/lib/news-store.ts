@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 // Канал новостей магазина. Публикуют owner/admin.
 // Пользователи могут лайкать и оставлять комментарии.
@@ -27,6 +28,8 @@ export interface NewsPost {
 
 interface State {
   items: NewsPost[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => void;
   remove: (id: string) => void;
   update: (id: string, patch: Partial<NewsPost>) => void;
@@ -36,13 +39,28 @@ interface State {
   pin: (id: string, v: boolean) => void;
 }
 
+const push = (items: NewsPost[]) => {
+  void saveCollection({ data: { name: "news", items } }).catch(() => {});
+};
+
 export const useNews = create<State>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       items: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "news" } })) as NewsPost[];
+          if (Array.isArray(remote) && remote.length) set({ items: remote, _hydrated: true });
+          else set({ _hydrated: true });
+        } catch {
+          set({ _hydrated: true });
+        }
+      },
       create: (p) =>
-        set((s) => ({
-          items: [
+        set((s) => {
+          const items = [
             {
               ...p,
               id: createId("news"),
@@ -51,16 +69,25 @@ export const useNews = create<State>()(
               comments: [],
             },
             ...s.items,
-          ],
-        })),
-      remove: (id) => set((s) => ({ items: s.items.filter((x) => x.id !== id) })),
+          ];
+          push(items);
+          return { items };
+        }),
+      remove: (id) =>
+        set((s) => {
+          const items = s.items.filter((x) => x.id !== id);
+          push(items);
+          return { items };
+        }),
       update: (id, patch) =>
-        set((s) => ({
-          items: s.items.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-        })),
+        set((s) => {
+          const items = s.items.map((x) => (x.id === id ? { ...x, ...patch } : x));
+          push(items);
+          return { items };
+        }),
       toggleLike: (postId, userId) =>
-        set((s) => ({
-          items: s.items.map((x) =>
+        set((s) => {
+          const items = s.items.map((x) =>
             x.id === postId
               ? {
                   ...x,
@@ -69,11 +96,13 @@ export const useNews = create<State>()(
                     : [...x.likes, userId],
                 }
               : x,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       addComment: (postId, c) =>
-        set((s) => ({
-          items: s.items.map((x) =>
+        set((s) => {
+          const items = s.items.map((x) =>
             x.id === postId
               ? {
                   ...x,
@@ -83,20 +112,26 @@ export const useNews = create<State>()(
                   ],
                 }
               : x,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       removeComment: (postId, commentId) =>
-        set((s) => ({
-          items: s.items.map((x) =>
+        set((s) => {
+          const items = s.items.map((x) =>
             x.id === postId
               ? { ...x, comments: x.comments.filter((c) => c.id !== commentId) }
               : x,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       pin: (id, v) =>
-        set((s) => ({
-          items: s.items.map((x) => (x.id === id ? { ...x, pinned: v } : x)),
-        })),
+        set((s) => {
+          const items = s.items.map((x) => (x.id === id ? { ...x, pinned: v } : x));
+          push(items);
+          return { items };
+        }),
     }),
     { name: "sadova-news" },
   ),

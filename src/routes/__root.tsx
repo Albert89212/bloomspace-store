@@ -21,6 +21,8 @@ import { SupportChatWidget } from "../components/SupportChatWidget";
 import { OwnerEditToggle } from "../components/Editable";
 import { MobileCartBar } from "../components/MobileCartBar";
 import { initTheme } from "../lib/theme-store";
+import { useProducts } from "../lib/products-store";
+import { useNews } from "../lib/news-store";
 
 function NotFoundComponent() {
   return (
@@ -128,6 +130,25 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     initTheme();
+    void useProducts.getState().hydrate();
+    void useNews.getState().hydrate();
+    const iv = setInterval(() => {
+      // refresh shared collections every 30s so multiple users see updates
+      void (async () => {
+        try {
+          const { fetchCollection } = await import("../lib/shared-collection.functions");
+          const [p, n] = await Promise.all([
+            fetchCollection({ data: { name: "products" } }),
+            fetchCollection({ data: { name: "news" } }),
+          ]);
+          if (Array.isArray(p)) useProducts.setState({ items: p as any });
+          if (Array.isArray(n)) useNews.setState({ items: n as any });
+        } catch {
+          /* ignore */
+        }
+      })();
+    }, 30000);
+    return () => clearInterval(iv);
   }, []);
 
   return (
