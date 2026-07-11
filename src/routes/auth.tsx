@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth, useCurrentUser } from "@/lib/auth-store";
 import { useOrders } from "@/lib/orders-store";
-import { useWishlist } from "@/lib/wishlist-store";
+import { useWishlist, selectWishCount } from "@/lib/wishlist-store";
 import { useTickets } from "@/lib/tickets-store";
 import { useAdmin, roleLabel } from "@/lib/admin-store";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -180,7 +180,7 @@ function AccountPanel() {
   const orders = useOrders((s) =>
     s.items.filter((o) => o.customer.email.toLowerCase() === user.email.toLowerCase()),
   );
-  const wishCount = useWishlist((s) => s.items.length);
+  const wishCount = useWishlist(selectWishCount);
   const myTickets = useTickets((s) =>
     s.items.filter((t) => t.userId === user.id || t.email.toLowerCase() === user.email.toLowerCase()),
   );
