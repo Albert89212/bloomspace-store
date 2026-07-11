@@ -37,10 +37,18 @@ function AuthForm() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!email.trim() || !password) {
+      setError("Заполните email и пароль");
+      return;
+    }
     if (mode === "login") {
       const res = login(email, password);
       if (!res.ok) return setError(res.error);
       navigate({ to: "/" });
+      return;
+    }
+    if (!name.trim()) {
+      setError("Укажите имя");
       return;
     }
     const res = signup({ name, email, password, referralCode: ref || undefined });
@@ -100,21 +108,6 @@ function AuthForm() {
           >
             {mode === "login" ? "Войти" : "Зарегистрироваться"}
           </motion.button>
-
-          {mode === "login" && (
-            <div className="pt-4">
-              <div className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
-                <span className="h-px flex-1 bg-hairline" />или<span className="h-px flex-1 bg-hairline" />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <SocialBtn label="VK ID" color="#0077FF" initial="VK" />
-                <SocialBtn label="Яндекс" color="#FC3F1D" initial="Я" />
-              </div>
-              <div className="mt-2 text-center text-[10px] text-muted-foreground">
-                Соцлогин подключается на сервере (VK ID, Yandex ID).
-              </div>
-            </div>
-          )}
         </motion.form>
       </AnimatePresence>
 
@@ -131,24 +124,6 @@ function AuthForm() {
         </button>
       </div>
     </div>
-  );
-}
-
-function SocialBtn({ label, color, initial }: { label: string; color: string; initial: string }) {
-  return (
-    <button
-      type="button"
-      onClick={() => alert(`${label}: подключается на сервере через OAuth. Демо-заглушка.`)}
-      className="flex h-10 items-center justify-center gap-2 rounded-full border border-hairline text-[12px] font-medium transition-colors hover:bg-secondary"
-    >
-      <span
-        className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-        style={{ backgroundColor: color }}
-      >
-        {initial}
-      </span>
-      {label}
-    </button>
   );
 }
 
