@@ -11,6 +11,20 @@ function db() {
   return pool;
 }
 
+function normalizeDbError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("ECONNREFUSED") || message.includes("connect")) {
+    return new Error("База данных недоступна: проверьте DATABASE_URL и что MySQL запущен на сервере");
+  }
+  if (message.includes("Access denied")) {
+    return new Error("MySQL отклонил доступ: проверьте логин и пароль в DATABASE_URL");
+  }
+  if (message.includes("Unknown database")) {
+    return new Error("База MySQL не найдена: создайте базу и укажите её имя в DATABASE_URL");
+  }
+  return error instanceof Error ? error : new Error(message);
+}
+
 async function ensureAppRecordTable(client: mysql.Pool) {
   if (appRecordTableReady) return;
   await client.execute(`
@@ -41,12 +55,17 @@ function parseJson<T>(value: unknown): T {
 }
 
 export async function readCollection<T = unknown>(name: string): Promise<T[]> {
-  const client = db();
-  await ensureAppRecordTable(client);
-  const [rows] = await client.execute<Array<mysql.RowDataPacket & { recordKey: string; value: unknown }>>(
-    "SELECT `recordKey`, `value` FROM `AppRecord` WHERE `collection` = ? ORDER BY `createdAt` ASC",
-    [name],
-  );
+  let rows: Array<mysql.RowDataPacket & { recordKey: string; value: unknown }>;
+  try {
+    const client = db();
+    await ensureAppRecordTable(client);
+    [rows] = await client.execute<Array<mysql.RowDataPacket & { recordKey: string; value: unknown }>>(
+      "SELECT `recordKey`, `value` FROM `AppRecord` WHERE `collection` = ? ORDER BY `createdAt` ASC",
+      [name],
+    );
+  } catch (error) {
+    throw normalizeDbError(error);
+  }
   const packed = rows.find((row) => row.recordKey === PACKED_COLLECTION_KEY);
   if (packed) {
     const value = parseJson<unknown>(packed.value);
@@ -57,10 +76,11 @@ export async function readCollection<T = unknown>(name: string): Promise<T[]> {
 
 export async function writeCollection<T = unknown>(name: string, items: T[]): Promise<void> {
   const client = db();
-  await ensureAppRecordTable(client);
-  const payload = JSON.stringify(items);
-  const connection = await client.getConnection();
+  let connection: mysql.PoolConnection | null = null;
   try {
+    await ensureAppRecordTable(client);
+    const payload = JSON.stringify(items);
+    connection = await client.getConnection();
     await connection.beginTransaction();
     await connection.execute("DELETE FROM `AppRecord` WHERE `collection` = ?", [name]);
     await connection.execute(
@@ -69,9 +89,9 @@ export async function writeCollection<T = unknown>(name: string, items: T[]): Pr
     );
     await connection.commit();
   } catch (error) {
-    await connection.rollback();
-    throw error;
+    if (connection) await connection.rollback();
+    throw normalizeDbError(error);
   } finally {
-    connection.release();
+    connection?.release();
   }
 }
