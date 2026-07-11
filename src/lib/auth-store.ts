@@ -52,7 +52,7 @@ const LOCAL_PASSWORDS_KEY = "sadova-auth-passwords-v1";
 
 function isServerAuthUnavailable(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect/i.test(message);
+  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect|Prisma|libssl|query_engine|Unable to require/i.test(message);
 }
 
 function messageFrom(error: unknown, fallback: string) {
