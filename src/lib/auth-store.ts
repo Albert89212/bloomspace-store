@@ -66,7 +66,7 @@ function upsertUser(users: AppUser[], user: AppUser) {
   return [user, ...base.filter((u) => u.id !== user.id && u.email !== user.email)];
 }
 
-function referralCode(len = 6) {
+function createReferralCode(len = 6) {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from({ length: len }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
 }
@@ -137,7 +137,7 @@ export const useAuth = create<AuthState>()(
             name: name.trim(),
             email,
             role: "customer",
-            referralCode: referralCode(),
+            referralCode: createReferralCode(),
             referredBy: ref || undefined,
             bonusBalance: ref ? 500 : 0,
             createdAt: Date.now(),
