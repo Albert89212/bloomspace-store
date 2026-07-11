@@ -294,6 +294,20 @@ model CmsEntry {
   createdAt DateTime @default(now())
 }
 
+// Универсальные коллекции приложения, которые должны быть общими для всех пользователей:
+// товары из админки, новости, чаты, заказы, отзывы, промокоды и заявки.
+model AppRecord {
+  id         String   @id @default(uuid())
+  collection String
+  recordKey  String
+  value      Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([collection, recordKey])
+  @@index([collection])
+}
+
 model Agreement {
   id           String   @id @default(uuid())
   userId       String
