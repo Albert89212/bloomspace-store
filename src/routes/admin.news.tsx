@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNews } from "@/lib/news-store";
 import { useAdmin } from "@/lib/admin-store";
 import { useCurrentUser } from "@/lib/auth-store";
+import { friendlyDbError } from "@/lib/db-error";
 
 export const Route = createFileRoute("/admin/news")({
   head: () => ({
@@ -25,6 +26,8 @@ function AdminNews() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [image, setImage] = useState<string | undefined>();
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
   if (!(role === "owner" || role === "admin" || role === "moderator")) {
     return (
@@ -39,19 +42,29 @@ function AdminNews() {
     r.readAsDataURL(f);
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
-    create({
-      authorId: user?.id ?? "staff",
-      authorName: user?.name ?? "SADOVA",
-      title: title.trim(),
-      body: body.trim(),
-      image,
-    });
-    setTitle("");
-    setBody("");
-    setImage(undefined);
+    if (!title.trim() || !body.trim() || saving) return;
+    setSaving(true);
+    setStatus(null);
+    try {
+      await create({
+        authorId: user?.id ?? "staff",
+        authorName: user?.name ?? "SADOVA",
+        title: title.trim(),
+        body: body.trim(),
+        image,
+      });
+      setTitle("");
+      setBody("");
+      setImage(undefined);
+      setStatus("Сохранено в БД и опубликовано");
+      setTimeout(() => setStatus(null), 3000);
+    } catch (error) {
+      setStatus(friendlyDbError(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -92,10 +105,12 @@ function AdminNews() {
         )}
         <button
           type="submit"
+          disabled={saving}
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[13px] font-medium text-background"
         >
-          <Send className="h-4 w-4" /> Опубликовать
+          <Send className="h-4 w-4" /> {saving ? "Сохраняю..." : "Опубликовать"}
         </button>
+        {status && <div className="text-center text-[12px] text-muted-foreground">{status}</div>}
       </form>
 
       <div className="space-y-3">

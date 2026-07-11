@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pencil, Trash2, X } from "lucide-react";
 import { formatPrice, categories, type Category, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
+import { friendlyDbError } from "@/lib/db-error";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
@@ -36,9 +37,11 @@ function AdminProducts() {
   const remove = useProducts((s) => s.remove);
 
   const [editing, setEditing] = useState<Draft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
 
-  function save() {
-    if (!editing) return;
+  async function save() {
+    if (!editing || saving) return;
     const payload = {
       slug: editing.slug,
       name: editing.name.trim(),
@@ -50,9 +53,19 @@ function AdminProducts() {
       specs: [],
     };
     if (!payload.name || !payload.price) return;
-    if (editing.id) update(editing.id, payload);
-    else create(payload);
-    setEditing(null);
+    setSaving(true);
+    setStatus(null);
+    try {
+      if (editing.id) await update(editing.id, payload);
+      else await create(payload);
+      setEditing(null);
+      setStatus("Сохранено в БД");
+      setTimeout(() => setStatus(null), 3000);
+    } catch (error) {
+      setStatus(friendlyDbError(error));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function startEdit(p: Product) {
@@ -79,6 +92,7 @@ function AdminProducts() {
           + Новое объявление
         </button>
       </div>
+      {status && <div className="mb-4 rounded-2xl bg-surface p-3 text-[13px] text-muted-foreground">{status}</div>}
 
       {items.length === 0 ? (
         <div className="rounded-3xl border border-hairline bg-surface p-12 text-center text-[13px] text-muted-foreground">
@@ -120,7 +134,13 @@ function AdminProducts() {
                         <Pencil className="h-3 w-3" /> Изменить
                       </button>
                       <button
-                        onClick={() => { if (confirm(`Удалить «${p.name}»?`)) remove(p.id); }}
+                        onClick={() => {
+                          if (confirm(`Удалить «${p.name}»?`)) {
+                            void remove(p.id).catch((error) => {
+                              setStatus(friendlyDbError(error, "Не удалось удалить из БД"));
+                            });
+                          }
+                        }}
                         className="inline-flex items-center gap-1 rounded-full border border-hairline px-3 py-1 text-[12px] text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-3 w-3" /> Удалить
@@ -186,11 +206,13 @@ function AdminProducts() {
               </button>
               <button
                 onClick={save}
+                disabled={saving}
                 className="rounded-full bg-foreground px-5 py-2 text-[13px] font-medium text-background"
               >
-                {editing.id ? "Сохранить" : "Создать"}
+                {saving ? "Сохраняю..." : editing.id ? "Сохранить" : "Создать"}
               </button>
             </div>
+            {status && <div className="mt-3 text-[12px] text-muted-foreground">{status}</div>}
           </div>
         </div>
       )}
