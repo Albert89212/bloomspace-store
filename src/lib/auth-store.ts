@@ -21,14 +21,6 @@ export interface AppUser {
 interface AuthState {
   users: AppUser[];
   currentUserId: string | null;
-  pendingSignup: {
-    name: string;
-    email: string;
-    password: string;
-    referralCode?: string;
-    code: string;
-    expiresAt: number;
-  } | null;
   signup: (data: {
     name: string;
     email: string;
@@ -64,7 +56,6 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       users: [TEST_OWNER],
       currentUserId: null,
-      pendingSignup: null,
       signup: ({ name, email, password, referralCode }) => {
         email = email.trim().toLowerCase();
         if (!/\S+@\S+\.\S+/.test(email)) return { ok: false, error: "Некорректный email" };
