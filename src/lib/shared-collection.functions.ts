@@ -21,8 +21,13 @@ export const fetchCollection = createServerFn({ method: "GET" })
       "cms",
     ]);
     if (!allowed.has(data.name)) return [] as any[];
-    const { readCollection } = await import("./shared-collection.server");
-    return readCollection<any>(data.name);
+    try {
+      const { readCollection } = await import("./shared-collection.server");
+      return readCollection<any>(data.name);
+    } catch (error) {
+      console.warn(`Shared collection "${data.name}" is unavailable`, error);
+      return null;
+    }
   });
 
 export const saveCollection = createServerFn({ method: "POST" })
@@ -47,7 +52,13 @@ export const saveCollection = createServerFn({ method: "POST" })
       "cms",
     ]);
     if (!allowed.has(data.name)) throw new Error("Unknown collection");
-    const { writeCollection } = await import("./shared-collection.server");
-    await writeCollection(data.name, data.items);
-    return { ok: true };
+    try {
+      const { writeCollection } = await import("./shared-collection.server");
+      await writeCollection(data.name, data.items);
+      return { ok: true, error: null };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Shared collection "${data.name}" was not saved`, error);
+      return { ok: false, error: message };
+    }
   });
