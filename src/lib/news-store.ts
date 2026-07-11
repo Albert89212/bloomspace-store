@@ -30,7 +30,7 @@ interface State {
   items: NewsPost[];
   _hydrated: boolean;
   hydrate: () => Promise<void>;
-  create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => NewsPost;
+  create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => Promise<NewsPost>;
   remove: (id: string) => void;
   update: (id: string, patch: Partial<NewsPost>) => void;
   toggleLike: (postId: string, userId: string) => void;
@@ -39,8 +39,10 @@ interface State {
   pin: (id: string, v: boolean) => void;
 }
 
+const persistNews = (items: NewsPost[]) => saveCollection({ data: { name: "news", items } });
+
 const push = (items: NewsPost[]) => {
-  void saveCollection({ data: { name: "news", items } }).catch((error) => {
+  void persistNews(items).catch((error) => {
     console.error("Не удалось сохранить новости в БД", error);
   });
 };
@@ -64,7 +66,7 @@ export const useNews = create<State>()(
           set({ _hydrated: true });
         }
       },
-      create: (p) => {
+      create: async (p) => {
         const post: NewsPost = {
           ...p,
           id: createId("news"),
@@ -72,11 +74,16 @@ export const useNews = create<State>()(
           likes: [],
           comments: [],
         };
-        set((s) => {
-          const items = [post, ...s.items];
-          push(items);
-          return { items, _hydrated: true };
-        });
+        const previous = get().items;
+        const items = [post, ...previous];
+        set({ items, _hydrated: true });
+        try {
+          await persistNews(items);
+        } catch (error) {
+          set({ items: previous, _hydrated: true });
+          console.error("Не удалось сохранить новости в БД", error);
+          throw error;
+        }
         return post;
       },
       remove: (id) =>
