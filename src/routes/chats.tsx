@@ -72,6 +72,7 @@ function ChatsHub() {
       <div className="mt-8 inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-full border border-hairline p-1 md:w-auto">
         {tabs.map((t) => (
           <button
+            type="button"
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`relative inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[13px] transition-colors ${
@@ -172,6 +173,7 @@ function NewsCard({ postId }: { postId: string }) {
         {canModerate && (
           <div className="flex items-center gap-1">
             <button
+              type="button"
               onClick={() => pin(post.id, !post.pinned)}
               className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
               aria-label={post.pinned ? "Открепить" : "Закрепить"}
@@ -179,6 +181,7 @@ function NewsCard({ postId }: { postId: string }) {
               <Pin className="h-4 w-4" />
             </button>
             <button
+              type="button"
               onClick={() => removePost(post.id)}
               className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
               aria-label="Удалить"
@@ -230,6 +233,7 @@ function NewsCard({ postId }: { postId: string }) {
                 <time>{new Date(c.createdAt).toLocaleString("ru-RU")}</time>
                 {(canModerate || user?.id === c.userId) && (
                   <button
+                    type="button"
                     onClick={() => removeComment(post.id, c.id)}
                     className="rounded-full p-1 hover:bg-background"
                     aria-label="Удалить комментарий"
@@ -363,6 +367,7 @@ function BotPane() {
           <span className="text-[11px] text-muted-foreground">на базе Lovable AI</span>
         </div>
         <button
+          type="button"
           onClick={reset}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary"
         >
@@ -385,6 +390,7 @@ function BotPane() {
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {suggestions.map((s) => (
                 <button
+                  type="button"
                   key={s}
                   onClick={() => setInput(s)}
                   className="rounded-full border border-hairline bg-surface px-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground"
@@ -508,6 +514,7 @@ function SellerPane() {
           <span className="text-[11px] text-muted-foreground">отвечаем в течение 10 минут</span>
         </div>
         <button
+          type="button"
           onClick={reset}
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary"
         >
