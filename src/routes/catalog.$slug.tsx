@@ -15,7 +15,6 @@ import { formatPrice, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
 import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/components/ProductCard";
-import { Product3DViewer } from "@/components/Product3DViewer";
 import { useReviews } from "@/lib/reviews-store";
 import { useCurrentUser } from "@/lib/auth-store";
 import { useOrders } from "@/lib/orders-store";
@@ -52,7 +51,6 @@ function ProductPage() {
   const products = useProducts((s) => s.items);
   const add = useCart((s) => s.add);
   const [added, setAdded] = useState(false);
-  const [view, setView] = useState<"photo" | "3d">("photo");
   const allReviews = useReviews((s) => s.items);
   const addReview = useReviews((s) => s.add);
   const product = products.find((p) => p.slug === slug);
@@ -135,32 +133,18 @@ function ProductPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="mb-3 inline-flex rounded-full border border-hairline p-1 text-[12px]">
-            {(["photo", "3d"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`rounded-full px-4 py-1.5 transition-colors ${
-                  view === v ? "bg-foreground text-background" : "text-muted-foreground"
-                }`}
-              >
-                {v === "photo" ? "Фото" : "3D"}
-              </button>
-            ))}
+          <div className="overflow-hidden rounded-3xl bg-surface">
+            <img
+              src={product.image || "/products/placeholder.svg"}
+              alt={product.name}
+              width={1024}
+              height={1024}
+              className="aspect-square w-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/products/placeholder.svg";
+              }}
+            />
           </div>
-          {view === "photo" ? (
-            <div className="overflow-hidden rounded-3xl bg-surface">
-              <img
-                src={product.image}
-                alt={product.name}
-                width={1024}
-                height={1024}
-                className="w-full object-cover"
-              />
-            </div>
-          ) : (
-            <Product3DViewer />
-          )}
         </motion.div>
 
         <motion.div
