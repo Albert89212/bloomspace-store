@@ -15,7 +15,6 @@ import { Route as LifeRouteImport } from './routes/life'
 import { Route as GiftRouteImport } from './routes/gift'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as ChatsRouteImport } from './routes/chats'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as B2bRouteImport } from './routes/b2b'
@@ -74,11 +73,6 @@ const DeliveryRoute = DeliveryRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChatsRoute = ChatsRouteImport.update({
-  id: '/chats',
-  path: '/chats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -235,7 +229,6 @@ export interface FileRoutesByFullPath {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
-  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -272,7 +265,6 @@ export interface FileRoutesByTo {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
-  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -311,7 +303,6 @@ export interface FileRoutesById {
   '/b2b': typeof B2bRoute
   '/blog': typeof BlogRouteWithChildren
   '/cart': typeof CartRoute
-  '/chats': typeof ChatsRoute
   '/checkout': typeof CheckoutRoute
   '/delivery': typeof DeliveryRoute
   '/gift': typeof GiftRoute
@@ -351,7 +342,6 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
-    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -388,7 +378,6 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
-    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -426,7 +415,6 @@ export interface FileRouteTypes {
     | '/b2b'
     | '/blog'
     | '/cart'
-    | '/chats'
     | '/checkout'
     | '/delivery'
     | '/gift'
@@ -465,7 +453,6 @@ export interface RootRouteChildren {
   B2bRoute: typeof B2bRoute
   BlogRoute: typeof BlogRouteWithChildren
   CartRoute: typeof CartRoute
-  ChatsRoute: typeof ChatsRoute
   CheckoutRoute: typeof CheckoutRoute
   DeliveryRoute: typeof DeliveryRoute
   GiftRoute: typeof GiftRoute
@@ -527,13 +514,6 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chats': {
-      id: '/chats'
-      path: '/chats'
-      fullPath: '/chats'
-      preLoaderRoute: typeof ChatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -788,7 +768,6 @@ const rootRouteChildren: RootRouteChildren = {
   B2bRoute: B2bRoute,
   BlogRoute: BlogRouteWithChildren,
   CartRoute: CartRoute,
-  ChatsRoute: ChatsRoute,
   CheckoutRoute: CheckoutRoute,
   DeliveryRoute: DeliveryRoute,
   GiftRoute: GiftRoute,
