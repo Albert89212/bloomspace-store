@@ -58,7 +58,7 @@ bun run build
 
 ### 5. Запуск через PM2
 ```bash
-pm2 start "bun run start" --name sadova --cwd /var/www/sadova
+pm2 start beget-start.mjs --name sadova --cwd /var/www/sadova
 pm2 save
 pm2 startup systemd    # выполнить показанную команду
 ```
@@ -84,7 +84,7 @@ A-запись `@` → IP VPS, A-запись `www` → IP VPS. Ждём 15–60
 3. Панель → **Node.js** → создать приложение:
    - Версия: **Node.js 22**
    - Директория: `/home/login/sadova.ru/public_html`
-   - Стартовый файл: `.output/server/index.mjs`
+   - Стартовый файл: `beget-start.mjs`
    - Переменные окружения: скопировать из `.env.example`
 4. Загрузите файлы (FileZilla/SFTP) или подключите Git через панель.
 5. В терминале Beget (SSH):
@@ -108,6 +108,8 @@ bun install --frozen-lockfile
 bunx prisma migrate deploy
 bun run build
 pm2 restart sadova
+# или, если процесс не поднялся:
+# pm2 start beget-start.mjs --name sadova --cwd /var/www/sadova
 ```
 
 ## Резервные копии
