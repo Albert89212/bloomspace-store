@@ -54,25 +54,23 @@ export const useTickets = create<TicketsState>()(
       },
       create: (t) => {
         const id = createId("ticket");
-        set((s) => {
-          const items = [
+        const ticket: Ticket = {
+          id,
+          subject: t.subject,
+          email: t.email,
+          status: "open",
+          createdAt: Date.now(),
+          messages: [
             {
-              id,
-              subject: t.subject,
-              email: t.email,
-              status: "open",
+              id: createId("message"),
+              author: "client",
+              text: t.text,
               createdAt: Date.now(),
-              messages: [
-                {
-                  id: createId("message"),
-                  author: "client",
-                  text: t.text,
-                  createdAt: Date.now(),
-                },
-              ],
             },
-            ...s.items,
-          ];
+          ],
+        };
+        set((s) => {
+          const items = [ticket, ...s.items];
           push(items);
           return { items };
         });
