@@ -69,20 +69,29 @@ function QuickNews() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
-    create({
-      authorId: user?.id ?? "owner",
-      authorName: user?.name ?? "SADOVA",
-      title: title.trim(),
-      body: body.trim(),
-    });
-    setTitle("");
-    setBody("");
-    setStatus("Опубликовано в ленте новостей");
-    setTimeout(() => setStatus(null), 3000);
+    if (!title.trim() || !body.trim() || saving) return;
+    setSaving(true);
+    setStatus(null);
+    try {
+      await create({
+        authorId: user?.id ?? "owner",
+        authorName: user?.name ?? "SADOVA",
+        title: title.trim(),
+        body: body.trim(),
+      });
+      setTitle("");
+      setBody("");
+      setStatus("Сохранено в БД и опубликовано");
+      setTimeout(() => setStatus(null), 3000);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Не удалось сохранить в БД");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -95,8 +104,8 @@ function QuickNews() {
       </p>
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Заголовок" className="mt-3 h-10 w-full rounded-xl border border-hairline bg-surface px-3 text-[13px]" required />
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} placeholder="Текст объявления (поддерживается markdown)" className="mt-2 w-full resize-none rounded-xl border border-hairline bg-surface p-3 text-[13px]" required />
-      <button type="submit" className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[12px] font-medium text-background">
-        <Send className="h-3.5 w-3.5" /> Опубликовать
+      <button type="submit" disabled={saving} className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-foreground text-[12px] font-medium text-background">
+        <Send className="h-3.5 w-3.5" /> {saving ? "Сохраняю..." : "Опубликовать"}
       </button>
       {status && <div className="mt-2 text-center text-[11px]" style={{ color: "var(--brand)" }}>{status}</div>}
     </form>
