@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNews } from "@/lib/news-store";
 import { useAdmin } from "@/lib/admin-store";
 import { useCurrentUser } from "@/lib/auth-store";
+import { friendlyDbError } from "@/lib/db-error";
 
 export const Route = createFileRoute("/admin/news")({
   head: () => ({
@@ -60,7 +61,7 @@ function AdminNews() {
       setStatus("Сохранено в БД и опубликовано");
       setTimeout(() => setStatus(null), 3000);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Не удалось сохранить в БД");
+      setStatus(friendlyDbError(error));
     } finally {
       setSaving(false);
     }

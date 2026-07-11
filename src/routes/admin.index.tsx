@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/products";
 import { useAdmin } from "@/lib/admin-store";
 import { useNews } from "@/lib/news-store";
 import { useCurrentUser } from "@/lib/auth-store";
+import { friendlyDbError } from "@/lib/db-error";
 import { useState } from "react";
 import { Megaphone, Percent, Send } from "lucide-react";
 
@@ -88,7 +89,7 @@ function QuickNews() {
       setStatus("Сохранено в БД и опубликовано");
       setTimeout(() => setStatus(null), 3000);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Не удалось сохранить в БД");
+      setStatus(friendlyDbError(error));
     } finally {
       setSaving(false);
     }
