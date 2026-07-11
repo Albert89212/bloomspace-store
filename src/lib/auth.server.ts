@@ -161,3 +161,11 @@ export async function getSafeUser(userId: string) {
   const user = await client.user.findUnique({ where: { id: userId } });
   return user ? toSafeUser(user) : null;
 }
+
+export function getSessionPassword() {
+  const value = process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === "production" && (!value || value.length < 32)) {
+    throw new Error("SESSION_SECRET должен быть задан на хостинге");
+  }
+  return value || "sadova-dev-session-secret-change-in-production-32";
+}
