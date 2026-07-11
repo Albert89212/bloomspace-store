@@ -29,13 +29,12 @@ interface AuthState {
     code: string;
     expiresAt: number;
   } | null;
-  requestSignup: (data: {
+  signup: (data: {
     name: string;
     email: string;
     password: string;
     referralCode?: string;
-  }) => { ok: true; code: string } | { ok: false; error: string };
-  confirmSignup: (code: string) => { ok: true } | { ok: false; error: string };
+  }) => { ok: true } | { ok: false; error: string };
   login: (email: string, password: string) => { ok: true } | { ok: false; error: string };
   logout: () => void;
   updateUser: (id: string, patch: Partial<AppUser>) => void;
@@ -66,46 +65,22 @@ export const useAuth = create<AuthState>()(
       users: [TEST_OWNER],
       currentUserId: null,
       pendingSignup: null,
-      requestSignup: ({ name, email, password, referralCode }) => {
+      signup: ({ name, email, password, referralCode }) => {
         email = email.trim().toLowerCase();
         if (!/\S+@\S+\.\S+/.test(email)) return { ok: false, error: "Некорректный email" };
         if (password.length < 6) return { ok: false, error: "Пароль минимум 6 символов" };
         if (get().users.some((u) => u.email === email))
           return { ok: false, error: "Email уже зарегистрирован" };
-        // Генерируем 6-значный код подтверждения.
-        // В проде — Lovable Emails / SMTP отправляет письмо;
-        // сейчас показываем код в UI (демо).
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        set({
-          pendingSignup: {
-            name: name.trim(),
-            email,
-            password,
-            referralCode,
-            code: otp,
-            expiresAt: Date.now() + 10 * 60 * 1000,
-          },
-        });
-        return { ok: true, code: otp };
-      },
-      confirmSignup: (input) => {
-        const p = get().pendingSignup;
-        if (!p) return { ok: false, error: "Нет активного запроса. Начните заново." };
-        if (Date.now() > p.expiresAt) {
-          set({ pendingSignup: null });
-          return { ok: false, error: "Код истёк. Запросите новый." };
-        }
-        if (input.trim() !== p.code) return { ok: false, error: "Неверный код" };
-        const referrer = p.referralCode
+        const referrer = referralCode
           ? get().users.find(
-              (u) => u.referralCode.toUpperCase() === p.referralCode!.toUpperCase(),
+              (u) => u.referralCode.toUpperCase() === referralCode.toUpperCase(),
             )
           : undefined;
         const user: AppUser = {
           id: crypto.randomUUID(),
-          name: p.name,
-          email: p.email,
-          password: p.password,
+          name: name.trim(),
+          email,
+          password,
           role: "customer",
           referralCode: code(),
           referredBy: referrer?.referralCode,
@@ -118,7 +93,6 @@ export const useAuth = create<AuthState>()(
             referrer && u.id === referrer.id ? { ...u, bonusBalance: u.bonusBalance + 1000 } : u,
           ).concat(user),
           currentUserId: user.id,
-          pendingSignup: null,
         }));
         return { ok: true };
       },
