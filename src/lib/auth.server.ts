@@ -1,5 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 export type SafeUserDto = {
   id: string;
@@ -16,10 +16,25 @@ export type SafeUserDto = {
 
 let prisma: PrismaClient | null = null;
 
+type Db = PrismaClient & { user: any };
+
+type RawUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  referralCode?: string | null;
+  referredBy?: string | null;
+  bonusBalance?: number | null;
+  createdAt: Date;
+  emailVerified?: boolean | null;
+  passwordHash?: string;
+};
+
 function db() {
   if (!process.env.DATABASE_URL) return null;
   prisma ??= new PrismaClient();
-  return prisma;
+  return prisma as Db;
 }
 
 function normalizeEmail(email: string) {
@@ -43,7 +58,7 @@ function verifyPassword(password: string, stored: string) {
   return timingSafeEqual(Buffer.from(hash), Buffer.from(candidate));
 }
 
-function mapRole(role: Role): SafeUserDto["role"] {
+function mapRole(role: string): SafeUserDto["role"] {
   if (role === "OWNER") return "owner";
   if (role === "ADMIN") return "admin";
   if (role === "MODERATOR") return "moderator";
@@ -52,17 +67,7 @@ function mapRole(role: Role): SafeUserDto["role"] {
   return "customer";
 }
 
-async function toSafeUser(user: {
-  id: string;
-  email: string;
-  name: string | null;
-  role: Role;
-  referralCode: string | null;
-  referredBy: string | null;
-  bonusBalance: number;
-  createdAt: Date;
-  emailVerified: boolean;
-}): Promise<SafeUserDto> {
+async function toSafeUser(user: RawUser): Promise<SafeUserDto> {
   const client = db();
   const code = user.referralCode || "";
   const invitedCount = client && code
@@ -75,9 +80,9 @@ async function toSafeUser(user: {
     role: mapRole(user.role),
     referralCode: code,
     referredBy: user.referredBy || undefined,
-    bonusBalance: Math.round(user.bonusBalance / 100),
+    bonusBalance: Math.round((user.bonusBalance ?? 0) / 100),
     createdAt: user.createdAt.getTime(),
-    emailVerified: user.emailVerified,
+    emailVerified: Boolean(user.emailVerified ?? true),
     invitedCount,
   };
 }
