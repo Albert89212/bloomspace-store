@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product, Category } from "./products";
 import { fetchCollection, saveCollection } from "./shared-collection.functions";
+import { seedProducts } from "./seed-products";
 
 interface ProductsState {
   items: Product[];
@@ -45,6 +46,14 @@ export const useProducts = create<ProductsState>()(
         try {
           const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
           if (Array.isArray(remote)) {
+            if (remote.length === 0) {
+              // БД пустая — засеиваем стартовыми объявлениями
+              set({ items: seedProducts, _hydrated: true, _dbAvailable: true });
+              try {
+                await saveCollection({ data: { name: "products", items: seedProducts } });
+              } catch {}
+              return;
+            }
             set({ items: remote, _hydrated: true, _dbAvailable: true });
             return;
           }
@@ -53,6 +62,10 @@ export const useProducts = create<ProductsState>()(
           set({ _dbAvailable: false });
         } finally {
           set({ _hydrated: true });
+        }
+        // Fallback: если стор всё ещё пуст (нет БД и нет локального кэша) — используем seed
+        if (get().items.length === 0) {
+          set({ items: seedProducts });
         }
       },
       create: async (p) => {
