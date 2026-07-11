@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { clearSession, useSession } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -16,6 +15,7 @@ export const serverSignup = createServerFn({ method: "POST" })
   .inputValidator((data) => signupSchema.parse(data))
   .handler(async ({ data }) => {
     const { registerUser } = await import("./auth.server");
+    const { useSession } = await import("@tanstack/react-start/server");
     const user = await registerUser(data);
     const session = await useSession<{ userId: string }>({
       password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
@@ -31,6 +31,7 @@ export const serverLogin = createServerFn({ method: "POST" })
   .inputValidator((data) => loginSchema.parse(data))
   .handler(async ({ data }) => {
     const { authenticateUser } = await import("./auth.server");
+    const { useSession } = await import("@tanstack/react-start/server");
     const user = await authenticateUser(data.email, data.password);
     const session = await useSession<{ userId: string }>({
       password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
@@ -43,6 +44,7 @@ export const serverLogin = createServerFn({ method: "POST" })
   });
 
 export const serverMe = createServerFn({ method: "GET" }).handler(async () => {
+  const { useSession } = await import("@tanstack/react-start/server");
   const session = await useSession<{ userId?: string }>({
     password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
     name: "sadova-session",
@@ -54,6 +56,7 @@ export const serverMe = createServerFn({ method: "GET" }).handler(async () => {
 });
 
 export const serverLogout = createServerFn({ method: "POST" }).handler(async () => {
+  const { clearSession } = await import("@tanstack/react-start/server");
   await clearSession({
     password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
     name: "sadova-session",

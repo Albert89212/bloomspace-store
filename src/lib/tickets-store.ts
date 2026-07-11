@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 export type TicketStatus = "open" | "in_progress" | "resolved";
 
@@ -22,19 +23,39 @@ export interface Ticket {
 
 interface TicketsState {
   items: Ticket[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   create: (t: { subject: string; email: string; text: string }) => string;
   reply: (id: string, author: "client" | "support", text: string) => void;
   setStatus: (id: string, status: TicketStatus) => void;
 }
 
+const push = (items: Ticket[]) => {
+  void saveCollection({ data: { name: "tickets", items } }).catch(() => {});
+};
+
 export const useTickets = create<TicketsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       items: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "tickets" } })) as Ticket[];
+          if (Array.isArray(remote)) {
+            set({ items: remote, _hydrated: true });
+            return;
+          }
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       create: (t) => {
         const id = createId("ticket");
-        set((s) => ({
-          items: [
+        set((s) => {
+          const items = [
             {
               id,
               subject: t.subject,
@@ -51,13 +72,15 @@ export const useTickets = create<TicketsState>()(
               ],
             },
             ...s.items,
-          ],
-        }));
+          ];
+          push(items);
+          return { items };
+        });
         return id;
       },
       reply: (id, author, text) =>
-        set((s) => ({
-          items: s.items.map((t) =>
+        set((s) => {
+          const items = s.items.map((t) =>
             t.id === id
               ? {
                   ...t,
@@ -67,10 +90,16 @@ export const useTickets = create<TicketsState>()(
                   ],
                 }
               : t,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       setStatus: (id, status) =>
-        set((s) => ({ items: s.items.map((t) => (t.id === id ? { ...t, status } : t)) })),
+        set((s) => {
+          const items = s.items.map((t) => (t.id === id ? { ...t, status } : t));
+          push(items);
+          return { items };
+        }),
     }),
     { name: "sadova-tickets" },
   ),
