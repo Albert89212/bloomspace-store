@@ -23,6 +23,17 @@ import { MobileCartBar } from "../components/MobileCartBar";
 import { initTheme } from "../lib/theme-store";
 import { useProducts } from "../lib/products-store";
 import { useNews } from "../lib/news-store";
+import { useCms } from "../lib/cms-store";
+import { useAuth } from "../lib/auth-store";
+import { useOrders } from "../lib/orders-store";
+import { useReviews } from "../lib/reviews-store";
+import { useSupportChat } from "../lib/support-chat-store";
+import { useStaffChat } from "../lib/staff-chat-store";
+import { usePromocodes } from "../lib/promocodes-store";
+import { useTickets } from "../lib/tickets-store";
+import { useLifePosts } from "../lib/life-posts-store";
+import { useBackInStock } from "../lib/back-in-stock-store";
+import { useAdmin } from "../lib/admin-store";
 
 function NotFoundComponent() {
   return (
@@ -130,19 +141,40 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     initTheme();
-    void useProducts.getState().hydrate();
-    void useNews.getState().hydrate();
+    void Promise.allSettled([
+      useCms.getState().hydrate(),
+      useAuth.getState().hydrate(),
+      useProducts.getState().hydrate(),
+      useNews.getState().hydrate(),
+      useOrders.getState().hydrate(),
+      useReviews.getState().hydrate(),
+      useSupportChat.getState().hydrate(),
+      useStaffChat.getState().hydrate(),
+      usePromocodes.getState().hydrate(),
+      useTickets.getState().hydrate(),
+      useLifePosts.getState().hydrate(),
+      useBackInStock.getState().hydrate(),
+      useAdmin.getState().hydrate(),
+    ]);
     const iv = setInterval(() => {
       // refresh shared collections every 30s so multiple users see updates
       void (async () => {
         try {
           const { fetchCollection } = await import("../lib/shared-collection.functions");
-          const [p, n] = await Promise.all([
+          const [p, n, cms] = await Promise.all([
             fetchCollection({ data: { name: "products" } }),
             fetchCollection({ data: { name: "news" } }),
+            fetchCollection({ data: { name: "cms" } }),
           ]);
           if (Array.isArray(p)) useProducts.setState({ items: p as any });
           if (Array.isArray(n)) useNews.setState({ items: n as any });
+          if (Array.isArray(cms)) {
+            const values = (cms as Array<{ key?: string; value?: string }>).reduce<Record<string, string>>((acc, item) => {
+              if (item.key && typeof item.value === "string") acc[item.key] = item.value;
+              return acc;
+            }, {});
+            useCms.setState({ values });
+          }
         } catch {
           /* ignore */
         }
