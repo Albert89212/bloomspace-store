@@ -45,7 +45,7 @@ export async function readCollection<T = unknown>(name: string): Promise<T[]> {
   await ensureAppRecordTable(client);
   const [rows] = await client.execute<Array<mysql.RowDataPacket & { recordKey: string; value: unknown }>>(
     "SELECT `recordKey`, `value` FROM `AppRecord` WHERE `collection` = ? ORDER BY `createdAt` ASC",
-    name,
+    [name],
   );
   const packed = rows.find((row) => row.recordKey === PACKED_COLLECTION_KEY);
   if (packed) {
