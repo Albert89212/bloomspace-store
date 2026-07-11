@@ -11,6 +11,14 @@ const signupSchema = loginSchema.extend({
   referralCode: z.string().optional(),
 });
 
+function sessionPassword() {
+  const value = process.env.SESSION_SECRET;
+  if (process.env.NODE_ENV === "production" && (!value || value.length < 32)) {
+    throw new Error("SESSION_SECRET должен быть задан на хостинге");
+  }
+  return value || "sadova-dev-session-secret-change-in-production-32";
+}
+
 export const serverSignup = createServerFn({ method: "POST" })
   .inputValidator((data) => signupSchema.parse(data))
   .handler(async ({ data }) => {
@@ -18,7 +26,7 @@ export const serverSignup = createServerFn({ method: "POST" })
     const { useSession } = await import("@tanstack/react-start/server");
     const user = await registerUser(data);
     const session = await useSession<{ userId: string }>({
-      password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
+      password: sessionPassword(),
       name: "sadova-session",
       maxAge: 60 * 60 * 24 * 30,
       cookie: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/" },
@@ -34,7 +42,7 @@ export const serverLogin = createServerFn({ method: "POST" })
     const { useSession } = await import("@tanstack/react-start/server");
     const user = await authenticateUser(data.email, data.password);
     const session = await useSession<{ userId: string }>({
-      password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
+      password: sessionPassword(),
       name: "sadova-session",
       maxAge: 60 * 60 * 24 * 30,
       cookie: { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/" },
@@ -46,7 +54,7 @@ export const serverLogin = createServerFn({ method: "POST" })
 export const serverMe = createServerFn({ method: "GET" }).handler(async () => {
   const { useSession } = await import("@tanstack/react-start/server");
   const session = await useSession<{ userId?: string }>({
-    password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
+    password: sessionPassword(),
     name: "sadova-session",
   });
   if (!session.data.userId) return { user: null };
@@ -58,7 +66,7 @@ export const serverMe = createServerFn({ method: "GET" }).handler(async () => {
 export const serverLogout = createServerFn({ method: "POST" }).handler(async () => {
   const { clearSession } = await import("@tanstack/react-start/server");
   await clearSession({
-    password: process.env.SESSION_SECRET || "sadova-dev-session-secret-change-in-production-32",
+    password: sessionPassword(),
     name: "sadova-session",
   });
   return { ok: true };

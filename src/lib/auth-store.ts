@@ -3,8 +3,7 @@ import { persist } from "zustand/middleware";
 import type { StaffRole } from "./admin-store";
 import { serverLogin, serverLogout, serverMe, serverSignup } from "./auth.functions";
 
-// Демо-аутентификация: пользователи и сессия хранятся в localStorage.
-// В проде — заменить на JWT-эндпоинты Express (server/src/routes/auth.ts).
+// Клиент хранит только безопасный профиль текущей сессии; пароли и список пользователей остаются на сервере.
 
 export interface AppUser {
   id: string;
