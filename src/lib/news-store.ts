@@ -52,9 +52,13 @@ export const useNews = create<State>()(
         if (get()._hydrated) return;
         try {
           const remote = (await fetchCollection({ data: { name: "news" } })) as NewsPost[];
-          if (Array.isArray(remote) && remote.length) set({ items: remote, _hydrated: true });
-          else set({ _hydrated: true });
+          if (Array.isArray(remote)) {
+            set({ items: remote, _hydrated: true });
+            return;
+          }
         } catch {
+          /* keep local cache */
+        } finally {
           set({ _hydrated: true });
         }
       },

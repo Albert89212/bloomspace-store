@@ -43,12 +43,13 @@ export const useProducts = create<ProductsState>()(
         if (get()._hydrated) return;
         try {
           const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
-          if (Array.isArray(remote) && remote.length) {
+          if (Array.isArray(remote)) {
             set({ items: remote, _hydrated: true });
-          } else {
-            set({ _hydrated: true });
+            return;
           }
         } catch {
+          /* keep local cache */
+        } finally {
           set({ _hydrated: true });
         }
       },

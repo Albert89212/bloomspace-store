@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 /**
  * Персональные треды клиент ↔ техподдержка.
@@ -34,6 +35,8 @@ export interface SupportThread {
 interface State {
   open: boolean;
   threads: SupportThread[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   toggle: () => void;
   setOpen: (v: boolean) => void;
   ensureThread: (user: { id: string; name: string; email?: string }) => SupportThread;
@@ -69,6 +72,20 @@ export const useSupportChat = create<State>()(
     (set, get) => ({
       open: false,
       threads: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "support-threads" } })) as SupportThread[];
+          if (Array.isArray(remote)) {
+            set({ threads: remote, _hydrated: true });
+            return;
+          }
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       toggle: () => set((s) => ({ open: !s.open })),
       setOpen: (v) => set({ open: v }),
       ensureThread: (user) => {
@@ -93,15 +110,19 @@ export const useSupportChat = create<State>()(
           unreadForStaff: 0,
           unreadForUser: 1,
         };
-        set((s) => ({ threads: [t, ...s.threads] }));
+        set((s) => {
+          const threads = [t, ...s.threads];
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        });
         return t;
       },
       getThread: (userId) => get().threads.find((t) => t.userId === userId),
       sendAsUser: (userId, text) => {
         const trimmed = text.trim();
         if (!trimmed) return;
-        set((s) => ({
-          threads: s.threads.map((t) =>
+        set((s) => {
+          const threads = s.threads.map((t) =>
             t.userId === userId
               ? {
                   ...t,
@@ -119,14 +140,16 @@ export const useSupportChat = create<State>()(
                   unreadForStaff: t.unreadForStaff + 1,
                 }
               : t,
-          ),
-        }));
+          );
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        });
       },
       sendAsStaff: (threadId, text, staff) => {
         const trimmed = text.trim();
         if (!trimmed) return;
-        set((s) => ({
-          threads: s.threads.map((t) =>
+        set((s) => {
+          const threads = s.threads.map((t) =>
             t.id === threadId
               ? {
                   ...t,
@@ -144,29 +167,41 @@ export const useSupportChat = create<State>()(
                   unreadForUser: t.unreadForUser + 1,
                 }
               : t,
-          ),
-        }));
+          );
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        });
       },
       markReadByUser: (userId) =>
-        set((s) => ({
-          threads: s.threads.map((t) =>
+        set((s) => {
+          const threads = s.threads.map((t) =>
             t.userId === userId ? { ...t, unreadForUser: 0 } : t,
-          ),
-        })),
+          );
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        }),
       markReadByStaff: (threadId) =>
-        set((s) => ({
-          threads: s.threads.map((t) =>
+        set((s) => {
+          const threads = s.threads.map((t) =>
             t.id === threadId ? { ...t, unreadForStaff: 0 } : t,
-          ),
-        })),
+          );
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        }),
       closeThread: (threadId) =>
-        set((s) => ({
-          threads: s.threads.map((t) =>
+        set((s) => {
+          const threads = s.threads.map((t) =>
             t.id === threadId ? { ...t, closedAt: Date.now() } : t,
-          ),
-        })),
+          );
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        }),
       removeThread: (threadId) =>
-        set((s) => ({ threads: s.threads.filter((t) => t.id !== threadId) })),
+        set((s) => {
+          const threads = s.threads.filter((t) => t.id !== threadId);
+          void saveCollection({ data: { name: "support-threads", items: threads } }).catch(() => {});
+          return { threads };
+        }),
     }),
     { name: "sadova-support-threads" },
   ),
