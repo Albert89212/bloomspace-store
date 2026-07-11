@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { StaffRole } from "./admin-store";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 // Демо-аутентификация: пользователи и сессия хранятся в localStorage.
 // В проде — заменить на JWT-эндпоинты Express (server/src/routes/auth.ts).
@@ -22,6 +23,8 @@ export interface AppUser {
 interface AuthState {
   users: AppUser[];
   currentUserId: string | null;
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   signup: (data: {
     name: string;
     email: string;
@@ -57,6 +60,21 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       users: [TEST_OWNER],
       currentUserId: null,
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "users" } })) as AppUser[];
+          if (Array.isArray(remote) && remote.length) {
+            const hasOwner = remote.some((u) => u.email === TEST_OWNER.email);
+            set({ users: hasOwner ? remote : [TEST_OWNER, ...remote], _hydrated: true });
+            return;
+          }
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       signup: ({ name, email, password, referralCode }) => {
         email = email.trim().toLowerCase();
         if (!/\S+@\S+\.\S+/.test(email)) return { ok: false, error: "Некорректный email" };
@@ -80,12 +98,13 @@ export const useAuth = create<AuthState>()(
           createdAt: Date.now(),
           emailVerified: true,
         };
-        set((s) => ({
-          users: s.users.map((u) =>
+        set((s) => {
+          const users = s.users.map((u) =>
             referrer && u.id === referrer.id ? { ...u, bonusBalance: u.bonusBalance + 1000 } : u,
-          ).concat(user),
-          currentUserId: user.id,
-        }));
+          ).concat(user);
+          void saveCollection({ data: { name: "users", items: users } }).catch(() => {});
+          return { users, currentUserId: user.id };
+        });
         return { ok: true };
       },
       login: (email, password) => {
@@ -97,18 +116,25 @@ export const useAuth = create<AuthState>()(
       },
       logout: () => set({ currentUserId: null }),
       updateUser: (id, patch) =>
-        set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })),
+        set((s) => {
+          const users = s.users.map((u) => (u.id === id ? { ...u, ...patch } : u));
+          void saveCollection({ data: { name: "users", items: users } }).catch(() => {});
+          return { users };
+        }),
       removeUser: (id) =>
-        set((s) => ({
-          users: s.users.filter((u) => u.id !== id),
-          currentUserId: s.currentUserId === id ? null : s.currentUserId,
-        })),
+        set((s) => {
+          const users = s.users.filter((u) => u.id !== id);
+          void saveCollection({ data: { name: "users", items: users } }).catch(() => {});
+          return { users, currentUserId: s.currentUserId === id ? null : s.currentUserId };
+        }),
       addBonus: (id, delta) =>
-        set((s) => ({
-          users: s.users.map((u) =>
+        set((s) => {
+          const users = s.users.map((u) =>
             u.id === id ? { ...u, bonusBalance: Math.max(0, u.bonusBalance + delta) } : u,
-          ),
-        })),
+          );
+          void saveCollection({ data: { name: "users", items: users } }).catch(() => {});
+          return { users };
+        }),
     }),
     { name: "sadova-auth" },
   ),
