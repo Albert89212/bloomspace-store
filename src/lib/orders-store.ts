@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "./cart-store";
+import { createId } from "./id";
 
 export type PaymentMethod = "card" | "sbp" | "yookassa";
 export type DeliveryMethod = "ozon" | "pochta" | "courier";
@@ -69,7 +70,7 @@ export const useOrders = create<OrdersState>()(
     (set, get) => ({
       items: [],
       create: (o) => {
-        const id = crypto.randomUUID();
+        const id = createId("order");
         const number = `SD-${String(get().items.length + 1001).padStart(5, "0")}`;
         const order: Order = {
           ...o,
@@ -92,7 +93,7 @@ export const useOrders = create<OrdersState>()(
                   ...o,
                   messages: [
                     ...(o.messages ?? []),
-                    { ...m, id: crypto.randomUUID(), createdAt: Date.now() },
+                    { ...m, id: createId("message"), createdAt: Date.now() },
                   ],
                 }
               : o,

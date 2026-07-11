@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 // UIMessage-совместимый минимум для локального хранения.
 export interface AiMessage {
@@ -24,7 +25,7 @@ export const useAiChat = create<State>()(
       add: (m) => {
         const msg: AiMessage = {
           ...m,
-          id: crypto.randomUUID(),
+          id: createId("chat"),
           createdAt: Date.now(),
         };
         set((s) => ({ messages: [...s.messages, msg] }));

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 // Общий чат поддержки (виджет на всех страницах).
 export interface SupportMessage {
@@ -42,7 +43,7 @@ export const useSupportChat = create<State>()(
           messages: [
             ...s.messages,
             {
-              id: crypto.randomUUID(),
+              id: createId("support"),
               author: "user",
               authorName: userName,
               text: trimmed,
@@ -57,7 +58,7 @@ export const useSupportChat = create<State>()(
             messages: [
               ...s.messages,
               {
-                id: crypto.randomUUID(),
+                id: createId("support"),
                 author: "bot",
                 authorName: "SADOVA Bot",
                 text: auto,

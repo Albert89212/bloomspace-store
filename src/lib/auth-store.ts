@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { StaffRole } from "./admin-store";
+import { createId } from "./id";
 
 // Демо-аутентификация: пользователи и сессия хранятся в localStorage.
 // В проде — заменить на JWT-эндпоинты Express (server/src/routes/auth.ts).
@@ -68,7 +69,7 @@ export const useAuth = create<AuthState>()(
             )
           : undefined;
         const user: AppUser = {
-          id: crypto.randomUUID(),
+          id: createId("user"),
           name: name.trim(),
           email,
           password,

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 // Веб-пуши: демо-версия. В проде — Push API + service worker + FCM.
 export interface AppNotification {
@@ -25,7 +26,7 @@ export const useNotifications = create<State>()(
       push: (n) =>
         set((s) => ({
           items: [
-            { ...n, id: crypto.randomUUID(), createdAt: Date.now(), read: false },
+            { ...n, id: createId("notification"), createdAt: Date.now(), read: false },
             ...s.items,
           ].slice(0, 50),
         })),

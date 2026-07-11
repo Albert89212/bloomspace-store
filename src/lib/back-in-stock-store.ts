@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export interface BackInStockRequest {
   id: string;
@@ -24,7 +25,7 @@ export const useBackInStock = create<State>()(
       request: (r) =>
         set((s) => ({
           items: [
-            { ...r, id: crypto.randomUUID(), createdAt: Date.now(), notified: false },
+            { ...r, id: createId("stock"), createdAt: Date.now(), notified: false },
             ...s.items,
           ],
         })),
