@@ -1,37 +1,53 @@
-import fs from "node:fs";
-import path from "node:path";
+import { PrismaClient } from "@prisma/client";
 
-const DATA_DIR =
-  process.env.SADOVA_DATA_DIR || path.join(process.cwd(), "data");
+let prisma: PrismaClient | null = null;
 
-function ensureDir() {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  } catch {
-    /* noop */
+function db() {
+  if (!process.env.DATABASE_URL) return null;
+  prisma ??= new PrismaClient();
+  return prisma as PrismaClient & {
+    appRecord?: {
+      findMany: (args: unknown) => Promise<Array<{ value: unknown; createdAt: Date }>>;
+      deleteMany: (args: unknown) => Promise<unknown>;
+      createMany: (args: unknown) => Promise<unknown>;
+    };
+  };
+}
+
+function keyFor(item: unknown, index: number) {
+  if (item && typeof item === "object") {
+    const rec = item as { id?: unknown; key?: unknown; slug?: unknown };
+    const k = rec.id ?? rec.key ?? rec.slug;
+    if (typeof k === "string" && k.trim()) return k;
   }
+  return `row-${String(index).padStart(6, "0")}`;
 }
 
-function filePath(name: string) {
-  const safe = name.replace(/[^a-z0-9_-]/gi, "_");
-  return path.join(DATA_DIR, `${safe}.json`);
+export async function readCollection<T = unknown>(name: string): Promise<T[]> {
+  const client = db();
+  if (!client?.appRecord) return [];
+  const rows = await client.appRecord.findMany({
+    where: { collection: name },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((row) => row.value as T);
 }
 
-export function readCollection<T = unknown>(name: string): T[] {
-  try {
-    ensureDir();
-    const p = filePath(name);
-    if (!fs.existsSync(p)) return [];
-    const raw = fs.readFileSync(p, "utf8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function writeCollection<T = unknown>(name: string, items: T[]): void {
-  ensureDir();
-  const p = filePath(name);
-  fs.writeFileSync(p, JSON.stringify(items, null, 2), "utf8");
+export async function writeCollection<T = unknown>(name: string, items: T[]): Promise<void> {
+  const client = db();
+  if (!client?.appRecord) return;
+  await client.$transaction(async (tx) => {
+    const record = (tx as typeof client).appRecord;
+    if (!record) return;
+    await record.deleteMany({ where: { collection: name } });
+    if (items.length) {
+      await record.createMany({
+        data: items.map((item, index) => ({
+          collection: name,
+          recordKey: keyFor(item, index),
+          value: item as object,
+        })),
+      });
+    }
+  });
 }
