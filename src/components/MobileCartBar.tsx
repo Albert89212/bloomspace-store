@@ -21,7 +21,7 @@ export function MobileCartBar() {
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 30 }}
           className="fixed inset-x-3 bottom-3 z-40 md:hidden"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          style={{ bottom: "calc(64px + env(safe-area-inset-bottom))" }}
         >
           <Link
             to="/cart"

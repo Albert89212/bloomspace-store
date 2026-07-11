@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Mail, MessageSquare, Phone, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTickets } from "@/lib/tickets-store";
+import { useCurrentUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/support")({
   head: () => ({
@@ -21,6 +22,7 @@ function SupportPage() {
   const tickets = useTickets((s) => s.items);
   const create = useTickets((s) => s.create);
   const reply = useTickets((s) => s.reply);
+  const user = useCurrentUser();
 
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -28,14 +30,27 @@ function SupportPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  const myTickets = email
-    ? tickets.filter((t) => t.email.toLowerCase() === email.toLowerCase())
-    : [];
+  useEffect(() => {
+    if (user?.email && !email) setEmail(user.email);
+  }, [user?.email, email]);
+
+  // Мой аккаунт видит только СВОИ тикеты (по userId + email).
+  const myTickets = tickets.filter((t) => {
+    if (user && t.userId && t.userId === user.id) return true;
+    if (email && t.email.toLowerCase() === email.toLowerCase()) return true;
+    return false;
+  });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!email || !subject || !text) return;
-    const id = create({ email, subject, text });
+    const id = create({
+      email,
+      subject,
+      text,
+      userId: user?.id,
+      authorName: user?.name ?? email,
+    });
     setSubject("");
     setText("");
     setOpenId(id);
@@ -124,6 +139,12 @@ function SupportPage() {
                               : "bg-background"
                           }`}
                         >
+                          {m.author === "support" && (m.authorName || m.authorRole) && (
+                            <div className="mb-1 text-[10px] font-medium opacity-70">
+                              {m.authorName ?? "SADOVA"}
+                              {m.authorRole ? ` · ${m.authorRole}` : ""}
+                            </div>
+                          )}
                           {m.text}
                         </div>
                       ))}
@@ -138,7 +159,9 @@ function SupportPage() {
                       <button
                         onClick={() => {
                           if (!replyText.trim()) return;
-                          reply(t.id, "client", replyText.trim());
+                          reply(t.id, "client", replyText.trim(), {
+                            authorName: user?.name ?? email,
+                          });
                           setReplyText("");
                         }}
                         className="rounded-full bg-foreground px-4 text-[13px] font-medium text-background"
