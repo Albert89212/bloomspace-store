@@ -117,7 +117,7 @@ export async function registerUser(data: { name: string; email: string; password
   const referrer = data.referralCode
     ? await client.user.findFirst({ where: { referralCode: data.referralCode.trim().toUpperCase() } })
     : null;
-  const user = await client.$transaction(async (tx) => {
+  const user = await client.$transaction(async (tx: any) => {
     if (referrer) {
       await tx.user.update({
         where: { id: referrer.id },
