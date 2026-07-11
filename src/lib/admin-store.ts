@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 // Demo-only role storage persisted in localStorage.
 // Backend replaces this with a real JWT role check (server/src/middleware/auth.ts).
 
-export type StaffRole = "owner" | "admin" | "moderator" | "support";
+export type StaffRole = "owner" | "admin" | "moderator" | "support" | "orders";
 
 export interface StaffMember {
   id: string;
@@ -14,30 +14,46 @@ export interface StaffMember {
   createdAt: number;
 }
 
+// Дефолтные названия должностей. Owner может переопределять через customRoleLabels.
 export const roleLabel: Record<StaffRole, string> = {
   owner: "Владелец",
   admin: "Администратор",
   moderator: "Модератор",
-  support: "Поддержка",
+  support: "Техподдержка",
+  orders: "Менеджер заказов",
 };
 
-// Access matrix — what each role can open in the admin panel.
+// Что каждой роли доступно в админ-панели.
 export const rolePermissions: Record<StaffRole, string[]> = {
-  owner: ["overview", "products", "orders", "reviews", "tickets", "chats", "life", "promocodes", "staff"],
-  admin: ["overview", "products", "orders", "reviews", "tickets", "chats", "life", "promocodes"],
-  moderator: ["overview", "reviews", "tickets", "chats", "life"],
-  support: ["overview", "tickets", "orders", "chats"],
+  owner: ["overview", "products", "orders", "reviews", "tickets", "chats", "staffchat", "life", "promocodes", "news", "staff"],
+  admin: ["overview", "products", "orders", "reviews", "tickets", "chats", "staffchat", "life", "promocodes", "news"],
+  moderator: ["overview", "reviews", "tickets", "chats", "staffchat", "life", "news"],
+  support: ["overview", "tickets", "chats", "staffchat"],
+  orders: ["overview", "orders", "chats", "staffchat"],
+};
+
+export const roleDuties: Record<StaffRole, string> = {
+  owner: "Полный контроль: сотрудники, товары, объявления, финансы.",
+  admin: "Каталог, объявления, промокоды, модерация и заказы.",
+  moderator: "Отзывы, тикеты, «Жизнь», новости и правила общения.",
+  support: "Чаты с клиентами и обращения в техподдержку.",
+  orders: "Обработка и статусы заказов, коммуникация с покупателями.",
 };
 
 interface AdminState {
   isAdmin: boolean;
   role: StaffRole | null;
   staff: StaffMember[];
+  /** Пользовательские названия должностей (задаёт Владелец). */
+  customRoleLabels: Partial<Record<StaffRole, string>>;
   login: (role?: StaffRole) => void;
   logout: () => void;
   addStaff: (s: Omit<StaffMember, "id" | "createdAt">) => void;
   updateStaff: (id: string, patch: Partial<StaffMember>) => void;
   removeStaff: (id: string) => void;
+  setRoleLabel: (role: StaffRole, label: string) => void;
+  resetRoleLabel: (role: StaffRole) => void;
+  getLabel: (role: StaffRole) => string;
   can: (perm: string) => boolean;
 }
 
@@ -49,6 +65,7 @@ export const useAdmin = create<AdminState>()(
       isAdmin: false,
       role: null,
       staff: [],
+      customRoleLabels: {},
       login: (role = "owner") => set({ isAdmin: true, role }),
       logout: () => set({ isAdmin: false, role: null }),
       addStaff: (s) =>
@@ -64,6 +81,17 @@ export const useAdmin = create<AdminState>()(
         })),
       removeStaff: (id) =>
         set((st) => ({ staff: st.staff.filter((x) => x.id !== id) })),
+      setRoleLabel: (role, label) =>
+        set((st) => ({
+          customRoleLabels: { ...st.customRoleLabels, [role]: label.trim() || roleLabel[role] },
+        })),
+      resetRoleLabel: (role) =>
+        set((st) => {
+          const next = { ...st.customRoleLabels };
+          delete next[role];
+          return { customRoleLabels: next };
+        }),
+      getLabel: (role) => get().customRoleLabels[role] ?? roleLabel[role],
       can: (perm) => {
         const r = get().role;
         if (!r) return false;
@@ -73,5 +101,10 @@ export const useAdmin = create<AdminState>()(
     { name: "sadova-admin" },
   ),
 );
+
+/** Хук: актуальное название должности с учётом переименований Владельца. */
+export function useRoleLabel(role: StaffRole | null | undefined): string {
+  return useAdmin((s) => (role ? s.customRoleLabels[role] ?? roleLabel[role] : ""));
+}
 
 // Backwards compat shim for older components still calling setAdmin(bool).

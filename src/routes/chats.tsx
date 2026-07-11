@@ -2,42 +2,40 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Newspaper,
-  Bot,
   Headset,
+  Users,
   Heart,
   MessageCircle,
   Send,
-  RotateCcw,
   Trash2,
   Pin,
-  ImagePlus,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { z } from "zod";
 import { useCurrentUser } from "@/lib/auth-store";
-import { useAdmin } from "@/lib/admin-store";
+import { useAdmin, roleLabel } from "@/lib/admin-store";
 import { useNews } from "@/lib/news-store";
-import { useAiChat } from "@/lib/ai-chat-store";
-import { useSupportChat } from "@/lib/support-chat-store";
+import { getGuestId, useSupportChat } from "@/lib/support-chat-store";
+import { useStaffChat } from "@/lib/staff-chat-store";
 
-type Tab = "news" | "bot" | "seller";
+type Tab = "news" | "support" | "staff";
 
 export const Route = createFileRoute("/chats")({
   validateSearch: (s: Record<string, unknown>) =>
-    z.object({ tab: z.enum(["news", "bot", "seller"]).optional() }).parse(s),
+    z.object({ tab: z.enum(["news", "support", "staff"]).optional() }).parse(s),
   head: () => ({
     meta: [
-      { title: "Чаты SADOVA — новости, ассистент и поддержка" },
+      { title: "Чаты SADOVA — новости и техподдержка" },
       {
         name: "description",
         content:
-          "Новости магазина, AI-ассистент и чат с продавцом SADOVA — в одном месте.",
+          "Новости магазина, личный чат с техподдержкой SADOVA и внутренний чат сотрудников.",
       },
       { property: "og:title", content: "Чаты SADOVA" },
-      { property: "og:description", content: "Новости, ассистент и поддержка." },
+      { property: "og:description", content: "Новости и техподдержка магазина SADOVA." },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "index,follow" },
     ],
   }),
   component: ChatsHub,
@@ -45,16 +43,17 @@ export const Route = createFileRoute("/chats")({
 
 function ChatsHub() {
   const search = Route.useSearch();
+  const isStaff = useAdmin((s) => s.isAdmin);
   const [tab, setTab] = useState<Tab>(search.tab ?? "news");
   useEffect(() => {
     if (search.tab && search.tab !== tab) setTab(search.tab);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.tab]);
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; color: string }[] = [
-    { id: "news", label: "Новости", icon: <Newspaper className="h-4 w-4" />, color: "var(--accent-warm)" },
-    { id: "bot", label: "Ассистент", icon: <Bot className="h-4 w-4" />, color: "var(--brand)" },
-    { id: "seller", label: "Продавец", icon: <Headset className="h-4 w-4" />, color: "var(--accent-cool)" },
+  const tabs: { id: Tab; label: string; icon: React.ReactNode; color: string; visible: boolean }[] = [
+    { id: "news", label: "Новости", icon: <Newspaper className="h-4 w-4" />, color: "var(--accent-warm)", visible: true },
+    { id: "support", label: "Техподдержка", icon: <Headset className="h-4 w-4" />, color: "var(--accent-cool)", visible: true },
+    { id: "staff", label: "Сотрудники", icon: <Users className="h-4 w-4" />, color: "var(--brand)", visible: isStaff },
   ];
 
   return (
@@ -65,12 +64,12 @@ function ChatsHub() {
         </div>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight md:text-5xl">Чаты</h1>
         <p className="mt-2 max-w-xl text-[14px] text-muted-foreground">
-          Новости магазина, AI-ассистент по подбору и живой чат с продавцом — на одной странице.
+          Новости магазина и живой чат с техподдержкой. Каждая переписка сохраняется у вас и в защищённой БД.
         </p>
       </div>
 
       <div className="mt-8 inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-full border border-hairline p-1 md:w-auto">
-        {tabs.map((t) => (
+        {tabs.filter((t) => t.visible).map((t) => (
           <button
             type="button"
             key={t.id}
@@ -104,8 +103,8 @@ function ChatsHub() {
             transition={{ duration: 0.2 }}
           >
             {tab === "news" && <NewsPane />}
-            {tab === "bot" && <BotPane />}
-            {tab === "seller" && <SellerPane />}
+            {tab === "support" && <SupportPane />}
+            {tab === "staff" && isStaff && <StaffPane />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -172,20 +171,10 @@ function NewsCard({ postId }: { postId: string }) {
         </div>
         {canModerate && (
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => pin(post.id, !post.pinned)}
-              className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
-              aria-label={post.pinned ? "Открепить" : "Закрепить"}
-            >
+            <button type="button" onClick={() => pin(post.id, !post.pinned)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary" aria-label={post.pinned ? "Открепить" : "Закрепить"}>
               <Pin className="h-4 w-4" />
             </button>
-            <button
-              type="button"
-              onClick={() => removePost(post.id)}
-              className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
-              aria-label="Удалить"
-            >
+            <button type="button" onClick={() => removePost(post.id)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary" aria-label="Удалить">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -204,18 +193,13 @@ function NewsCard({ postId }: { postId: string }) {
 
       <div className="mt-4 flex items-center gap-4 border-t border-hairline pt-4 text-[13px]">
         <button
+          type="button"
           onClick={() => user && toggleLike(post.id, user.id)}
           disabled={!user}
           className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
           aria-pressed={liked}
         >
-          <Heart
-            className="h-4 w-4"
-            style={{
-              color: liked ? "var(--brand)" : "currentColor",
-              fill: liked ? "var(--brand)" : "transparent",
-            }}
-          />
+          <Heart className="h-4 w-4" style={{ color: liked ? "var(--brand)" : "currentColor", fill: liked ? "var(--brand)" : "transparent" }} />
           {post.likes.length}
         </button>
         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
@@ -232,12 +216,7 @@ function NewsCard({ postId }: { postId: string }) {
               <div className="flex items-center gap-2">
                 <time>{new Date(c.createdAt).toLocaleString("ru-RU")}</time>
                 {(canModerate || user?.id === c.userId) && (
-                  <button
-                    type="button"
-                    onClick={() => removeComment(post.id, c.id)}
-                    className="rounded-full p-1 hover:bg-background"
-                    aria-label="Удалить комментарий"
-                  >
+                  <button type="button" onClick={() => removeComment(post.id, c.id)} className="rounded-full p-1 hover:bg-background" aria-label="Удалить комментарий">
                     <Trash2 className="h-3 w-3" />
                   </button>
                 )}
@@ -253,311 +232,97 @@ function NewsCard({ postId }: { postId: string }) {
           onSubmit={(e) => {
             e.preventDefault();
             if (!text.trim()) return;
-            addComment(post.id, {
-              userId: user.id,
-              userName: user.name,
-              text: text.trim(),
-            });
+            addComment(post.id, { userId: user.id, userName: user.name, text: text.trim() });
             setText("");
           }}
           className="mt-3 flex gap-2"
         >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            maxLength={500}
-            placeholder="Оставить комментарий"
-            className="h-10 flex-1 rounded-full border border-hairline bg-background px-4 text-[13px] outline-none focus:border-foreground"
-          />
-          <button
-            type="submit"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-foreground px-4 text-[12px] font-medium text-background"
-          >
+          <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Оставить комментарий" className="h-10 flex-1 rounded-full border border-hairline bg-background px-4 text-[13px] outline-none focus:border-foreground" />
+          <button type="submit" className="inline-flex h-10 items-center justify-center rounded-full bg-foreground px-4 text-[12px] font-medium text-background">
             <Send className="h-4 w-4" />
           </button>
         </form>
       ) : (
         <p className="mt-3 text-[12px] text-muted-foreground">
-          <Link to="/auth" className="underline">
-            Войдите
-          </Link>{" "}
-          чтобы лайкать и комментировать.
+          <Link to="/auth" className="underline">Войдите</Link> чтобы лайкать и комментировать.
         </p>
       )}
     </article>
   );
 }
 
-/* ────────────────── BOT ────────────────── */
-function BotPane() {
-  const messages = useAiChat((s) => s.messages);
-  const add = useAiChat((s) => s.add);
-  const appendToLast = useAiChat((s) => s.appendToLast);
-  const setLastError = useAiChat((s) => s.setLastError);
-  const reset = useAiChat((s) => s.reset);
-  const [input, setInput] = useState("");
-  const [status, setStatus] = useState<"idle" | "streaming">("idle");
-  const scrollerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    scrollerRef.current?.scrollTo({
-      top: scrollerRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages]);
-
-  async function send() {
-    const text = input.trim();
-    if (!text || status !== "idle") return;
-    add({ role: "user", content: text });
-    add({ role: "assistant", content: "" });
-    setInput("");
-    setStatus("streaming");
-
-    try {
-      const history = [...useAiChat.getState().messages].slice(0, -1);
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: history.map((m) => ({
-            id: m.id,
-            role: m.role,
-            parts: [{ type: "text", text: m.content }],
-          })),
-        }),
-      });
-      if (!res.ok || !res.body) {
-        const err = await res.text();
-        setLastError(err || "Ошибка ассистента");
-        setStatus("idle");
-        return;
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        appendToLast(decoder.decode(value, { stream: true }));
-      }
-    } catch (e) {
-      setLastError((e as Error).message || "Ошибка сети");
-    } finally {
-      setStatus("idle");
-    }
-  }
-
-  const suggestions = [
-    "Подскажи скамейку для дачи 6 соток",
-    "Как оформить возврат?",
-    "Сколько стоит доставка в Санкт-Петербург?",
-  ];
-
-  return (
-    <div className="flex h-[65vh] flex-col overflow-hidden rounded-3xl border border-hairline bg-background">
-      <div className="flex items-center justify-between border-b border-hairline px-4 py-3 text-[13px]">
-        <div className="flex items-center gap-2 font-medium">
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-          >
-            <Bot className="h-4 w-4" />
-          </span>
-          SADOVA Ассистент
-          <span className="text-[11px] text-muted-foreground">на базе Lovable AI</span>
-        </div>
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Очистить
-        </button>
-      </div>
-
-      <div ref={scrollerRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && (
-          <div className="mx-auto max-w-md pt-6 text-center">
-            <div
-              className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full"
-              style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-            >
-              <Bot className="h-7 w-7" />
-            </div>
-            <p className="mt-3 text-[14px] text-muted-foreground">
-              Привет! Я помогу подобрать мебель, отвечу про доставку, оплату и гарантию.
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {suggestions.map((s) => (
-                <button
-                  type="button"
-                  key={s}
-                  onClick={() => setInput(s)}
-                  className="rounded-full border border-hairline bg-surface px-3 py-1.5 text-[12px] text-muted-foreground hover:text-foreground"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {messages.map((m) => (
-          <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            {m.role === "user" ? (
-              <div
-                className="max-w-[80%] rounded-2xl px-4 py-2.5 text-[14px]"
-                style={{
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                }}
-              >
-                {m.content}
-              </div>
-            ) : (
-              <div className="flex max-w-[85%] gap-2">
-                <span
-                  className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-                >
-                  <Bot className="h-4 w-4" />
-                </span>
-                <div className="prose prose-sm max-w-none text-[14px] leading-relaxed">
-                  {m.content ? (
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-muted-foreground">
-                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-                      <span
-                        className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                        style={{ animationDelay: "150ms" }}
-                      />
-                      <span
-                        className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                        style={{ animationDelay: "300ms" }}
-                      />
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send();
-        }}
-        className="flex gap-2 border-t border-hairline p-3"
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              send();
-            }
-          }}
-          rows={1}
-          placeholder="Спросите ассистента…"
-          className="min-h-11 flex-1 resize-none rounded-2xl border border-hairline bg-surface px-4 py-3 text-[14px] outline-none focus:border-foreground"
-        />
-        <button
-          type="submit"
-          disabled={status !== "idle" || !input.trim()}
-          className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-background disabled:opacity-50"
-          aria-label="Отправить"
-        >
-          <Send className="h-4 w-4" />
-        </button>
-      </form>
-    </div>
-  );
-}
-
-/* ────────────────── SELLER (support) ────────────────── */
-function SellerPane() {
-  const messages = useSupportChat((s) => s.messages);
-  const send = useSupportChat((s) => s.send);
-  const reset = useSupportChat((s) => s.reset);
+/* ────────────────── SUPPORT (личный чат клиент↔поддержка) ────────────────── */
+function SupportPane() {
   const user = useCurrentUser();
+  const threads = useSupportChat((s) => s.threads);
+  const ensureThread = useSupportChat((s) => s.ensureThread);
+  const sendAsUser = useSupportChat((s) => s.sendAsUser);
+  const markReadByUser = useSupportChat((s) => s.markReadByUser);
   const [text, setText] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    scrollerRef.current?.scrollTo({
-      top: scrollerRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages]);
+  const me = useMemo(
+    () =>
+      user
+        ? { id: user.id, name: user.name, email: user.email }
+        : { id: getGuestId(), name: "Гость" },
+    [user],
+  );
+  const thread = threads.find((t) => t.userId === me.id);
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!text.trim()) return;
-    send(text, user?.name);
-    setText("");
-  }
+  useEffect(() => {
+    ensureThread(me);
+    markReadByUser(me.id);
+  }, [me, ensureThread, markReadByUser]);
+
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+  }, [thread?.messages.length]);
 
   return (
     <div className="flex h-[65vh] flex-col overflow-hidden rounded-3xl border border-hairline bg-background">
       <div className="flex items-center justify-between border-b border-hairline px-4 py-3 text-[13px]">
         <div className="flex items-center gap-2 font-medium">
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: "color-mix(in oklab, var(--accent-cool) 20%, transparent)", color: "var(--accent-cool)" }}
-          >
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full" style={{ background: "color-mix(in oklab, var(--accent-cool) 20%, transparent)", color: "var(--accent-cool)" }}>
             <Headset className="h-4 w-4" />
           </span>
-          Чат с продавцом
-          <span className="text-[11px] text-muted-foreground">отвечаем в течение 10 минут</span>
+          Техподдержка SADOVA
+          <span className="text-[11px] text-muted-foreground">только вы и оператор</span>
         </div>
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-secondary"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Очистить
-        </button>
       </div>
       <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {messages.map((m) => {
+        {(thread?.messages ?? []).map((m) => {
           const isUser = m.author === "user";
           return (
             <div key={m.id} className={isUser ? "flex justify-end" : "flex justify-start"}>
               <div
                 className="max-w-[80%] rounded-2xl px-4 py-2.5 text-[14px]"
-                style={
-                  isUser
-                    ? { background: "var(--foreground)", color: "var(--background)" }
-                    : { background: "var(--surface)", color: "var(--foreground)" }
-                }
+                style={isUser ? { background: "var(--foreground)", color: "var(--background)" } : { background: "var(--surface)", color: "var(--foreground)" }}
               >
-                {!isUser && (
-                  <div className="mb-1 text-[11px] font-medium text-muted-foreground">
-                    {m.authorName}
-                  </div>
-                )}
+                {!isUser && <div className="mb-1 text-[11px] font-medium text-muted-foreground">{m.authorName}</div>}
                 {m.text}
               </div>
             </div>
           );
         })}
       </div>
-      <form onSubmit={submit} className="flex gap-2 border-t border-hairline p-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!text.trim()) return;
+          ensureThread(me);
+          sendAsUser(me.id, text);
+          setText("");
+        }}
+        className="flex gap-2 border-t border-hairline p-3"
+      >
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Напишите сообщение продавцу…"
+          placeholder="Напишите сообщение оператору…"
           className="h-11 flex-1 rounded-full border border-hairline bg-surface px-4 text-[14px] outline-none focus:border-foreground"
         />
-        <button
-          type="submit"
-          disabled={!text.trim()}
-          className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-background disabled:opacity-50"
-          aria-label="Отправить"
-        >
+        <button type="submit" disabled={!text.trim()} className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-background disabled:opacity-50" aria-label="Отправить">
           <Send className="h-4 w-4" />
         </button>
       </form>
@@ -565,6 +330,81 @@ function SellerPane() {
   );
 }
 
-// Не используется, но оставим импорты компактно
-const _reserved = { ImagePlus, X };
-void _reserved;
+/* ────────────────── STAFF (внутренний чат сотрудников) ────────────────── */
+function StaffPane() {
+  const messages = useStaffChat((s) => s.messages);
+  const send = useStaffChat((s) => s.send);
+  const remove = useStaffChat((s) => s.remove);
+  const role = useAdmin((s) => s.role);
+  const user = useCurrentUser();
+  const canModerate = role === "owner" || role === "admin";
+  const [text, setText] = useState("");
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages.length]);
+
+  if (!role) return null;
+
+  return (
+    <div className="flex h-[65vh] flex-col overflow-hidden rounded-3xl border border-hairline bg-background">
+      <div className="flex items-center justify-between border-b border-hairline px-4 py-3 text-[13px]">
+        <div className="flex items-center gap-2 font-medium">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
+            <Users className="h-4 w-4" />
+          </span>
+          Внутренний чат сотрудников
+          <span className="text-[11px] text-muted-foreground">только для персонала</span>
+        </div>
+      </div>
+      <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        {messages.length === 0 && (
+          <div className="py-10 text-center text-[12px] text-muted-foreground">Пока сообщений нет.</div>
+        )}
+        {messages.map((m) => {
+          const mine = user?.id === m.authorId;
+          return (
+            <div key={m.id} className={mine ? "flex justify-end" : "flex justify-start"}>
+              <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-[14px]" style={mine ? { background: "var(--foreground)", color: "var(--background)" } : { background: "var(--surface)" }}>
+                <div className={`mb-1 text-[11px] ${mine ? "opacity-70" : "text-muted-foreground"}`}>
+                  {m.authorName} · {roleLabel[m.role]} · {new Date(m.createdAt).toLocaleString("ru-RU")}
+                  {(canModerate || mine) && (
+                    <button type="button" onClick={() => remove(m.id)} className="ml-2 rounded-full p-0.5 hover:bg-background/20" aria-label="Удалить">
+                      <Trash2 className="h-3 w-3 inline" />
+                    </button>
+                  )}
+                </div>
+                {m.text}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!text.trim() || !role) return;
+          send({
+            authorId: user?.id ?? "staff",
+            authorName: user?.name ?? roleLabel[role],
+            role,
+            text: text.trim(),
+          });
+          setText("");
+        }}
+        className="flex gap-2 border-t border-hairline p-3"
+      >
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Сообщение коллегам…"
+          className="h-11 flex-1 rounded-full border border-hairline bg-surface px-4 text-[14px] outline-none focus:border-foreground"
+        />
+        <button type="submit" disabled={!text.trim()} className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-background disabled:opacity-50" aria-label="Отправить">
+          <Send className="h-4 w-4" />
+        </button>
+      </form>
+    </div>
+  );
+}

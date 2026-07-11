@@ -2,84 +2,172 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createId } from "./id";
 
-// Общий чат поддержки (виджет на всех страницах).
+/**
+ * Персональные треды клиент ↔ техподдержка.
+ * Каждый пользователь видит ТОЛЬКО свой чат.
+ * Сотрудники (support/admin/owner) видят список всех тредов.
+ * На проде — синхронизация с MySQL через /api/support (server/src/routes).
+ */
+
 export interface SupportMessage {
   id: string;
-  author: "user" | "bot" | "staff";
+  author: "user" | "staff";
   authorName: string;
   text: string;
   createdAt: number;
 }
 
-interface State {
-  open: boolean;
+export interface SupportThread {
+  id: string;
+  /** Владелец треда. Для гостей — session:<random>. */
+  userId: string;
+  userName: string;
+  userEmail?: string;
   messages: SupportMessage[];
-  toggle: () => void;
-  setOpen: (v: boolean) => void;
-  send: (text: string, userName?: string) => void;
-  reset: () => void;
+  createdAt: number;
+  updatedAt: number;
+  unreadForStaff: number;
+  unreadForUser: number;
+  closedAt?: number;
 }
 
-const WELCOME: SupportMessage = {
-  id: "welcome",
-  author: "bot",
-  authorName: "SADOVA Bot",
-  text:
-    "Здравствуйте! Я помогу с выбором, доставкой и оплатой. Опишите вопрос — свободный оператор ответит в течение 10 минут.",
-  createdAt: Date.now(),
-};
+interface State {
+  open: boolean;
+  threads: SupportThread[];
+  toggle: () => void;
+  setOpen: (v: boolean) => void;
+  ensureThread: (user: { id: string; name: string; email?: string }) => SupportThread;
+  getThread: (userId: string) => SupportThread | undefined;
+  sendAsUser: (userId: string, text: string) => void;
+  sendAsStaff: (
+    threadId: string,
+    text: string,
+    staff: { name: string },
+  ) => void;
+  markReadByUser: (userId: string) => void;
+  markReadByStaff: (threadId: string) => void;
+  closeThread: (threadId: string) => void;
+  removeThread: (threadId: string) => void;
+}
+
+function guestId() {
+  if (typeof window === "undefined") return "guest:server";
+  let g = window.localStorage.getItem("sadova-guest-id");
+  if (!g) {
+    g = "guest:" + createId("g");
+    window.localStorage.setItem("sadova-guest-id", g);
+  }
+  return g;
+}
+
+export function getGuestId() {
+  return guestId();
+}
 
 export const useSupportChat = create<State>()(
   persist(
     (set, get) => ({
       open: false,
-      messages: [WELCOME],
+      threads: [],
       toggle: () => set((s) => ({ open: !s.open })),
       setOpen: (v) => set({ open: v }),
-      send: (text, userName = "Вы") => {
-        const trimmed = text.trim();
-        if (!trimmed) return;
-        set((s) => ({
+      ensureThread: (user) => {
+        const existing = get().threads.find((t) => t.userId === user.id);
+        if (existing) return existing;
+        const t: SupportThread = {
+          id: createId("thread"),
+          userId: user.id,
+          userName: user.name,
+          userEmail: user.email,
           messages: [
-            ...s.messages,
             {
-              id: createId("support"),
-              author: "user",
-              authorName: userName,
-              text: trimmed,
+              id: createId("msg"),
+              author: "staff",
+              authorName: "Техподдержка SADOVA",
+              text: `Здравствуйте, ${user.name.split(" ")[0] || "друг"}! Опишите ваш вопрос — оператор ответит в течение 10 минут.`,
               createdAt: Date.now(),
             },
           ],
-        }));
-        // Демо-автоответ. В проде — WebSocket с оператором.
-        setTimeout(() => {
-          const auto = pickAutoReply(trimmed);
-          set((s) => ({
-            messages: [
-              ...s.messages,
-              {
-                id: createId("support"),
-                author: "bot",
-                authorName: "SADOVA Bot",
-                text: auto,
-                createdAt: Date.now(),
-              },
-            ],
-          }));
-          void get();
-        }, 900);
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          unreadForStaff: 0,
+          unreadForUser: 1,
+        };
+        set((s) => ({ threads: [t, ...s.threads] }));
+        return t;
       },
-      reset: () => set({ messages: [WELCOME] }),
+      getThread: (userId) => get().threads.find((t) => t.userId === userId),
+      sendAsUser: (userId, text) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        set((s) => ({
+          threads: s.threads.map((t) =>
+            t.userId === userId
+              ? {
+                  ...t,
+                  messages: [
+                    ...t.messages,
+                    {
+                      id: createId("msg"),
+                      author: "user",
+                      authorName: t.userName,
+                      text: trimmed,
+                      createdAt: Date.now(),
+                    },
+                  ],
+                  updatedAt: Date.now(),
+                  unreadForStaff: t.unreadForStaff + 1,
+                }
+              : t,
+          ),
+        }));
+      },
+      sendAsStaff: (threadId, text, staff) => {
+        const trimmed = text.trim();
+        if (!trimmed) return;
+        set((s) => ({
+          threads: s.threads.map((t) =>
+            t.id === threadId
+              ? {
+                  ...t,
+                  messages: [
+                    ...t.messages,
+                    {
+                      id: createId("msg"),
+                      author: "staff",
+                      authorName: staff.name,
+                      text: trimmed,
+                      createdAt: Date.now(),
+                    },
+                  ],
+                  updatedAt: Date.now(),
+                  unreadForUser: t.unreadForUser + 1,
+                }
+              : t,
+          ),
+        }));
+      },
+      markReadByUser: (userId) =>
+        set((s) => ({
+          threads: s.threads.map((t) =>
+            t.userId === userId ? { ...t, unreadForUser: 0 } : t,
+          ),
+        })),
+      markReadByStaff: (threadId) =>
+        set((s) => ({
+          threads: s.threads.map((t) =>
+            t.id === threadId ? { ...t, unreadForStaff: 0 } : t,
+          ),
+        })),
+      closeThread: (threadId) =>
+        set((s) => ({
+          threads: s.threads.map((t) =>
+            t.id === threadId ? { ...t, closedAt: Date.now() } : t,
+          ),
+        })),
+      removeThread: (threadId) =>
+        set((s) => ({ threads: s.threads.filter((t) => t.id !== threadId) })),
     }),
-    { name: "sadova-support-chat" },
+    { name: "sadova-support-threads" },
   ),
 );
-
-function pickAutoReply(q: string) {
-  const l = q.toLowerCase();
-  if (l.includes("достав")) return "Доставляем через ПВЗ Ozon и Почтой России, есть курьер по крупным городам. Подробности на /delivery.";
-  if (l.includes("оплат")) return "Принимаем карты, СБП и ЮMoney через ЮKassa. Все платежи с 3-D Secure.";
-  if (l.includes("возврат") || l.includes("гарант"))
-    return "Возврат в течение 7 дней по ст. 26.1 ЗоЗПП. Заявление можно оформить в личном кабинете.";
-  return "Спасибо за обращение! Оператор подключится в течение 10 минут. Средний ответ — 3 минуты.";
-}
