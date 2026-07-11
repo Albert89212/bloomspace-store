@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Check, CreditCard, MapPin, Package, Tag, Truck, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, CreditCard, MapPin, Package, Tag, X } from "lucide-react";
+import { useState } from "react";
 import { useCart, selectCartTotal } from "@/lib/cart-store";
-import { useOrders, type DeliveryMethod, type PaymentMethod } from "@/lib/orders-store";
+import { useOrders, type PaymentMethod } from "@/lib/orders-store";
 import { usePromocodes } from "@/lib/promocodes-store";
 import { formatPrice } from "@/lib/products";
+import { YandexPvzMap, type PvzSelection } from "@/components/YandexPvzMap";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
@@ -16,19 +17,6 @@ export const Route = createFileRoute("/checkout")({
   }),
   component: CheckoutPage,
 });
-
-const deliveryOptions: {
-  id: DeliveryMethod;
-  name: string;
-  price: number;
-  hint: string;
-  pvz: boolean;
-  icon: typeof Package;
-}[] = [
-  { id: "ozon", name: "Ozon — ПВЗ", price: 290, hint: "2–4 дня. Более 45 000 пунктов выдачи Ozon по всей РФ.", pvz: true, icon: Package },
-  { id: "pochta", name: "Почта России", price: 350, hint: "3–14 дней. Отделения в любой населённый пункт РФ.", pvz: false, icon: MapPin },
-  { id: "courier", name: "Курьер до двери", price: 990, hint: "1–2 дня по крупным городам.", pvz: false, icon: Truck },
-];
 
 function CheckoutPage() {
   const items = useCart((s) => s.items);
@@ -42,9 +30,8 @@ function CheckoutPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [delivery, setDelivery] = useState<DeliveryMethod>("ozon");
+  const [city, setCity] = useState("Москва");
+  const [pvz, setPvz] = useState<PvzSelection | null>(null);
   const [payment, setPayment] = useState<PaymentMethod>("sbp");
   const [offerAccepted, setOfferAccepted] = useState(true);
   const [privacyAccepted, setPrivacyAccepted] = useState(true);
@@ -54,17 +41,9 @@ function CheckoutPage() {
   const [promoApplied, setPromoApplied] = useState<{ id: string; code: string; discount: number } | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
 
-  const selected = deliveryOptions.find((d) => d.id === delivery)!;
-  const deliveryPrice = selected.price;
+  const deliveryPrice = pvz?.price ?? 0;
   const discount = promoApplied?.discount ?? 0;
   const grandTotal = Math.max(0, total + deliveryPrice - discount);
-
-  const pvzMapUrl = useMemo(() => {
-    if (!selected.pvz || !city.trim()) return null;
-    const provider = delivery === "ozon" ? "Ozon" : "Почта России";
-    const query = encodeURIComponent(`Пункт выдачи ${provider} ${city}`);
-    return `https://yandex.ru/map-widget/v1/?text=${query}&z=12`;
-  }, [selected.pvz, city, delivery]);
 
   function tryApplyPromo() {
     setPromoError(null);
@@ -88,23 +67,22 @@ function CheckoutPage() {
     name.trim() &&
     /\S+@\S+\.\S+/.test(email) &&
     phone.trim() &&
-    city.trim() &&
-    address.trim() &&
+    !!pvz &&
     offerAccepted &&
     privacyAccepted;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSubmit || submitting) return;
+    if (!canSubmit || submitting || !pvz) return;
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 800));
     if (promoApplied) incrementUse(promoApplied.id);
     const order = createOrder({
       items,
       total: grandTotal,
-      customer: { name, email, phone, city, address },
+      customer: { name, email, phone, city, address: pvz.point.address },
       payment,
-      delivery,
+      delivery: "ozon",
       contractAccepted: true,
       contractIp: "0.0.0.0",
     });
@@ -147,66 +125,36 @@ function CheckoutPage() {
             </div>
           </Block>
 
-          <Block title="Доставка" step={2}>
-            <div className="grid gap-3">
-              {deliveryOptions.map((d) => (
-                <label
-                  key={d.id}
-                  className={`flex cursor-pointer items-start justify-between gap-4 rounded-2xl border p-4 transition-colors ${
-                    delivery === d.id ? "border-foreground bg-secondary" : "border-hairline hover:border-muted-foreground/40"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name="delivery"
-                      className="sr-only"
-                      checked={delivery === d.id}
-                      onChange={() => setDelivery(d.id)}
-                    />
-                    <d.icon className="mt-0.5 h-4 w-4" />
-                    <div>
-                      <div className="text-[14px] font-medium">{d.name}</div>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground">{d.hint}</div>
-                    </div>
+          <Block title="Доставка · ПВЗ Ozon" step={2}>
+            <div className="mb-4 flex items-center gap-2 rounded-2xl bg-secondary p-3 text-[12px] text-muted-foreground">
+              <Package className="h-4 w-4 shrink-0" />
+              <span>
+                Доставка только в пункты выдачи Ozon. Стоимость рассчитывается автоматически по расстоянию от нашего склада в Москве.
+              </span>
+            </div>
+            <YandexPvzMap
+              city={city}
+              onCityChange={setCity}
+              selectedId={pvz?.point.id ?? null}
+              onSelect={setPvz}
+            />
+            {pvz && (
+              <div className="mt-4 flex items-center justify-between rounded-2xl border border-foreground bg-secondary p-4">
+                <div>
+                  <div className="flex items-center gap-2 text-[13px] font-medium">
+                    <MapPin className="h-4 w-4" /> {pvz.point.name}
                   </div>
-                  <span className="whitespace-nowrap text-[13px] tabular-nums">
-                    {formatPrice(d.price)}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Город" value={city} onChange={setCity} required />
-              <Field
-                label={selected.pvz ? "Адрес ПВЗ" : "Адрес доставки"}
-                value={address}
-                onChange={setAddress}
-                required
-              />
-            </div>
-            {pvzMapUrl && (
-              <div className="mt-4 overflow-hidden rounded-2xl border border-hairline">
-                <div className="flex items-center justify-between border-b border-hairline bg-surface px-4 py-2 text-[12px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5" />
-                    Карта пунктов выдачи · {selected.name}
-                  </span>
-                  <a
-                    href={pvzMapUrl.replace("map-widget/v1", "maps")}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline"
-                  >
-                    Открыть на Яндекс.Картах
-                  </a>
+                  <div className="mt-0.5 text-[12px] text-muted-foreground">
+                    {pvz.point.address} · {pvz.point.hours}
+                  </div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    Расстояние от склада ≈ {pvz.distanceKm.toFixed(0)} км
+                  </div>
                 </div>
-                <iframe
-                  title="Карта ПВЗ"
-                  src={pvzMapUrl}
-                  className="h-64 w-full"
-                  loading="lazy"
-                />
+                <div className="text-right">
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Доставка</div>
+                  <div className="text-lg font-semibold tabular-nums">{formatPrice(pvz.price)}</div>
+                </div>
               </div>
             )}
           </Block>
