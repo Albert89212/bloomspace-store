@@ -121,6 +121,13 @@ export const useSupportChat = create<State>()(
       sendAsUser: (userId, text) => {
         const trimmed = text.trim();
         if (!trimmed) return;
+        const message: SupportMessage = {
+          id: createId("msg"),
+          author: "user",
+          authorName: "",
+          text: trimmed,
+          createdAt: Date.now(),
+        };
         set((s) => {
           const threads = s.threads.map((t) =>
             t.userId === userId
@@ -128,13 +135,7 @@ export const useSupportChat = create<State>()(
                   ...t,
                   messages: [
                     ...t.messages,
-                    {
-                      id: createId("msg"),
-                      author: "user",
-                      authorName: t.userName,
-                      text: trimmed,
-                      createdAt: Date.now(),
-                    },
+                    { ...message, authorName: t.userName },
                   ],
                   updatedAt: Date.now(),
                   unreadForStaff: t.unreadForStaff + 1,
@@ -148,21 +149,19 @@ export const useSupportChat = create<State>()(
       sendAsStaff: (threadId, text, staff) => {
         const trimmed = text.trim();
         if (!trimmed) return;
+        const message: SupportMessage = {
+          id: createId("msg"),
+          author: "staff",
+          authorName: staff.name,
+          text: trimmed,
+          createdAt: Date.now(),
+        };
         set((s) => {
           const threads = s.threads.map((t) =>
             t.id === threadId
               ? {
                   ...t,
-                  messages: [
-                    ...t.messages,
-                    {
-                      id: createId("msg"),
-                      author: "staff",
-                      authorName: staff.name,
-                      text: trimmed,
-                      createdAt: Date.now(),
-                    },
-                  ],
+                  messages: [...t.messages, message],
                   updatedAt: Date.now(),
                   unreadForUser: t.unreadForUser + 1,
                 }
