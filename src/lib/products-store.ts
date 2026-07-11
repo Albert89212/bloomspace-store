@@ -40,14 +40,14 @@ export const useProducts = create<ProductsState>()(
       items: [],
       _hydrated: false,
       hydrate: async () => {
-        if (get()._hydrated) return;
         try {
           const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
           if (Array.isArray(remote)) {
             set({ items: remote, _hydrated: true });
             return;
           }
-        } catch {
+        } catch (error) {
+          console.error("Не удалось загрузить объявления из БД", error);
           /* keep local cache */
         } finally {
           set({ _hydrated: true });
@@ -61,26 +61,32 @@ export const useProducts = create<ProductsState>()(
         const product: Product = { ...p, slug, id: uid(), rating: 5 };
         set((s) => {
           const items = [product, ...s.items];
-          void saveCollection({ data: { name: "products", items } }).catch(() => {});
-          return { items };
+          void saveCollection({ data: { name: "products", items } }).catch((error) => {
+            console.error("Не удалось сохранить объявления в БД", error);
+          });
+          return { items, _hydrated: true };
         });
         return product;
       },
       update: (id, patch) =>
         set((s) => {
           const items = s.items.map((x) => (x.id === id ? { ...x, ...patch } : x));
-          void saveCollection({ data: { name: "products", items } }).catch(() => {});
-          return { items };
+          void saveCollection({ data: { name: "products", items } }).catch((error) => {
+            console.error("Не удалось сохранить объявления в БД", error);
+          });
+          return { items, _hydrated: true };
         }),
       remove: (id) =>
         set((s) => {
           const items = s.items.filter((x) => x.id !== id);
-          void saveCollection({ data: { name: "products", items } }).catch(() => {});
-          return { items };
+          void saveCollection({ data: { name: "products", items } }).catch((error) => {
+            console.error("Не удалось сохранить объявления в БД", error);
+          });
+          return { items, _hydrated: true };
         }),
       findBySlug: (slug) => get().items.find((x) => x.slug === slug),
     }),
-    { name: "sadova-products" },
+    { name: "sadova-products", partialize: (state) => ({ items: state.items }) },
   ),
 );
 
