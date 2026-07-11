@@ -4,8 +4,8 @@ import type { CartItem } from "./cart-store";
 import { createId } from "./id";
 import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
-export type PaymentMethod = "card" | "sbp" | "yookassa";
-export type DeliveryMethod = "ozon" | "pochta" | "courier";
+export type PaymentMethod = "sbp" | "sberpay" | "tpay" | "card";
+export type DeliveryMethod = "ozon";
 export type OrderStatus = "new" | "paid" | "shipping" | "done" | "cancelled";
 
 export interface OrderMessage {
