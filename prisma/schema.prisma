@@ -13,6 +13,10 @@ datasource db {
 enum Role {
   USER
   ADMIN
+  OWNER
+  MODERATOR
+  SUPPORT
+  ORDERS
 }
 
 enum OrderStatus {
@@ -199,6 +203,77 @@ model Message {
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
+}
+
+// Персональный тред клиент ↔ техподдержка.
+model SupportThread {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  closedAt  DateTime?
+  unreadForStaff Int @default(0)
+  unreadForUser  Int @default(0)
+
+  messages SupportMessage[]
+
+  @@index([updatedAt])
+}
+
+model SupportMessage {
+  id         String   @id @default(uuid())
+  threadId   String
+  author     String   // 'user' | 'staff'
+  authorId   String
+  authorName String
+  text       String   @db.Text
+  createdAt  DateTime @default(now())
+
+  thread SupportThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+}
+
+// Внутренний чат сотрудников (owner/admin/moderator/support/orders).
+model StaffChatMessage {
+  id         String   @id @default(uuid())
+  authorId   String
+  authorName String
+  role       Role
+  text       String   @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Объявления магазина (новости, промо, баннеры).
+enum AnnouncementKind {
+  NEWS
+  PROMO
+  BANNER
+}
+
+model Announcement {
+  id          String            @id @default(uuid())
+  kind        AnnouncementKind  @default(NEWS)
+  title       String
+  body        String            @db.Text
+  imageUrl    String?
+  pinned      Boolean           @default(false)
+  authorId    String
+  authorName  String
+  createdAt   DateTime          @default(now())
+  publishedAt DateTime          @default(now())
+  expiresAt   DateTime?
+
+  @@index([kind])
+  @@index([publishedAt])
+}
+
+// Пользовательские названия должностей (задаёт Владелец).
+model RoleLabel {
+  role  Role   @id
+  label String
 }
 
 model Agreement {
