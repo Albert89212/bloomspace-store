@@ -163,8 +163,9 @@ function CheckoutPage() {
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 { id: "sbp" as const, name: "СБП" },
-                { id: "card" as const, name: "Картой" },
-                { id: "yookassa" as const, name: "ЮKassa" },
+                { id: "sberpay" as const, name: "SberPay" },
+                { id: "tpay" as const, name: "T-Pay" },
+                { id: "card" as const, name: "Карта МИР/Visa/MC" },
               ].map((p) => (
                 <label
                   key={p.id}

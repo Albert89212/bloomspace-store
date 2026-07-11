@@ -137,9 +137,9 @@ function Index() {
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--accent-cool)" }} />
-              Ozon · Почта России · Курьер
+              Только ПВЗ Ozon по всей России
             </span>
-            <span className="hidden md:inline-flex items-center gap-2">Оплата: СБП, карта, ЮKassa</span>
+            <span className="hidden md:inline-flex items-center gap-2">Оплата: СБП · SberPay · T-Pay · карта</span>
           </div>
         </div>
       </section>
@@ -286,7 +286,7 @@ function Index() {
             {
               icon: Truck,
               title: "Доставка по РФ",
-              body: "Ozon ПВЗ, Почта России, курьер — по тарифу перевозчика",
+              body: "Только ПВЗ Ozon — 45 000 точек по России",
               color: "var(--brand)",
             },
             {
@@ -298,7 +298,7 @@ function Index() {
             {
               icon: Sparkles,
               title: "Оплата в РФ",
-              body: "Карта, СБП, ЮKassa, CloudPayments",
+              body: "СБП · SberPay · T-Pay · банковская карта",
               color: "var(--accent-warm)",
             },
           ].map((f, i) => (

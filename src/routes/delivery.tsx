@@ -9,7 +9,7 @@ export const Route = createFileRoute("/delivery")({
       {
         name: "description",
         content:
-          "Способы доставки по России: ПВЗ Ozon, Почта России и курьер. Оплата картой, СБП и ЮKassa.",
+          "Доставка только через ПВЗ Ozon по всей России. Оплата: СБП, SberPay, T-Pay, банковская карта.",
       },
       { property: "og:title", content: "Доставка и оплата — SADOVA" },
       {
@@ -25,50 +25,41 @@ const delivery = [
   {
     icon: MapPin,
     title: "ПВЗ Ozon",
-    desc: "Основной способ. Более 45 000 точек выдачи Ozon по всей стране. 2–6 дней.",
-    price: "от 290 ₽",
+    desc: "Единственный способ доставки. Более 45 000 пунктов выдачи Ozon по всей России. 2–6 дней. Цена рассчитывается автоматически на карте по расстоянию от склада.",
+    price: "от 249 ₽",
     tint: "#005BFF",
     tintSoft: "oklch(0.95 0.04 250)",
-  },
-  {
-    icon: Building2,
-    title: "Почта России",
-    desc: "Доставка в любой населённый пункт РФ, включая сёла. 5–14 дней.",
-    price: "от 250 ₽",
-    tint: "#1A3E7C",
-    tintSoft: "oklch(0.95 0.03 250)",
-  },
-  {
-    icon: Home,
-    title: "Курьер по Москве и МО",
-    desc: "Доставка в удобный день и интервал. 1–2 дня.",
-    price: "от 500 ₽",
-    tint: "oklch(0.55 0.15 30)",
-    tintSoft: "oklch(0.95 0.04 30)",
   },
 ];
 
 const payment = [
   {
-    icon: CreditCard,
-    title: "Банковская карта",
-    desc: "Visa, Mastercard, МИР. Приём через ЮKassa с 3-D Secure.",
-    tint: "var(--accent-cool)",
-    tintSoft: "oklch(0.95 0.04 235)",
-  },
-  {
     icon: Smartphone,
     title: "СБП",
-    desc: "Оплата по QR-коду из мобильного банка за 5 секунд. Без комиссии.",
+    desc: "QR-код или ссылка из мобильного банка. Зачисление за 5 секунд, без комиссии для покупателя.",
     tint: "var(--brand)",
     tintSoft: "var(--brand-soft)",
   },
   {
     icon: Wallet,
-    title: "ЮMoney / SberPay",
-    desc: "Электронные кошельки и оплата в один клик через ЮKassa.",
-    tint: "var(--accent-warm)",
+    title: "SberPay",
+    desc: "Оплата в один клик через СберБанк Онлайн. Подтверждение по SberID / Push.",
+    tint: "oklch(0.55 0.16 145)",
+    tintSoft: "oklch(0.95 0.04 145)",
+  },
+  {
+    icon: Wallet,
+    title: "T-Pay",
+    desc: "Оплата через Т-Банк (Tinkoff Pay) по кнопке — без ввода данных карты.",
+    tint: "oklch(0.55 0.16 55)",
     tintSoft: "oklch(0.95 0.05 55)",
+  },
+  {
+    icon: CreditCard,
+    title: "Банковская карта",
+    desc: "МИР, Visa, Mastercard. Приём через Т-Кассу с 3-D Secure 2.0. PCI DSS Level 1.",
+    tint: "var(--accent-cool)",
+    tintSoft: "oklch(0.95 0.04 235)",
   },
 ];
 
@@ -83,8 +74,8 @@ function DeliveryPage() {
           Доставка и оплата
         </h1>
         <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Доставляем по всей России через ПВЗ Ozon и Почту России, а также курьером по крупным городам.
-          Все переводы защищены — сертификаты PCI DSS у платёжных партнёров.
+          Доставляем только через ПВЗ Ozon — 45 000 точек по всей России. Курьером не возим.
+          Оплата: СБП, SberPay, T-Pay, банковская карта. PCI DSS Level 1.
         </p>
       </motion.div>
 
@@ -92,7 +83,7 @@ function DeliveryPage() {
         <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
           <Truck className="h-3.5 w-3.5" /> Доставка
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-4 grid gap-3">
           {delivery.map((d, i) => (
             <motion.div
               key={d.title}
@@ -131,7 +122,7 @@ function DeliveryPage() {
         <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
           <CreditCard className="h-3.5 w-3.5" /> Оплата
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {payment.map((p, i) => (
             <motion.div
               key={p.title}
@@ -152,7 +143,7 @@ function DeliveryPage() {
           ))}
         </div>
         <div className="mt-4 flex items-center gap-2 text-[12px] text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5" /> Все платежи проходят через ЮKassa (лицензия ЦБ РФ №3510-К).
+          <ShieldCheck className="h-3.5 w-3.5" /> Приём платежей — ПАО «Т-Банк» (лицензия ЦБ РФ №2673) и НСПК (СБП).
         </div>
       </section>
 
