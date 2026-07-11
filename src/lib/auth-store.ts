@@ -43,7 +43,7 @@ const TEST_OWNER: AppUser = {
   role: "owner",
   referralCode: "OWNER1",
   bonusBalance: 0,
-  createdAt: Date.now(),
+  createdAt: 1704067200000,
   emailVerified: true,
 };
 
