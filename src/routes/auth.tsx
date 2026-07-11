@@ -35,7 +35,7 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (busy) return;
@@ -56,7 +56,7 @@ function AuthForm() {
     }
     setBusy(true);
     if (mode === "login") {
-      const res = login(cleanEmail, password);
+      const res = await login(cleanEmail, password);
       if (!res.ok) {
         setBusy(false);
         setError(res.error);
@@ -70,7 +70,7 @@ function AuthForm() {
       setError("Укажите имя");
       return;
     }
-    const res = signup({ name: cleanName, email: cleanEmail, password, referralCode: cleanRef || undefined });
+    const res = await signup({ name: cleanName, email: cleanEmail, password, referralCode: cleanRef || undefined });
     if (!res.ok) {
       setBusy(false);
       setError(res.error);
@@ -157,8 +157,6 @@ function AuthForm() {
 function AccountPanel() {
   const user = useCurrentUser()!;
   const logout = useAuth((s) => s.logout);
-  const users = useAuth((s) => s.users);
-  const invited = users.filter((u) => u.referredBy === user.referralCode);
   const inviteLink =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth?ref=${user.referralCode}`
@@ -176,7 +174,7 @@ function AccountPanel() {
         </div>
         <button
           type="button"
-          onClick={logout}
+          onClick={() => void logout()}
           className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-[12px] hover:bg-secondary"
         >
           <LogOut className="h-3.5 w-3.5" /> Выйти
@@ -193,7 +191,7 @@ function AccountPanel() {
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Stat label="Ваш код" value={user.referralCode} mono />
-          <Stat label="Приглашено" value={String(invited.length)} />
+          <Stat label="Приглашено" value={String(user.invitedCount ?? 0)} />
           <Stat label="Бонусов" value={`${user.bonusBalance} ₽`} />
         </div>
         <div className="mt-4 flex items-center gap-2">
