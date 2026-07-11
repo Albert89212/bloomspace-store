@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pencil, Trash2, X } from "lucide-react";
 import { formatPrice, categories, type Category, type Product } from "@/lib/products";
 import { useProducts } from "@/lib/products-store";
+import { friendlyDbError } from "@/lib/db-error";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProducts,
@@ -61,7 +62,7 @@ function AdminProducts() {
       setStatus("Сохранено в БД");
       setTimeout(() => setStatus(null), 3000);
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Не удалось сохранить в БД");
+      setStatus(friendlyDbError(error));
     } finally {
       setSaving(false);
     }
@@ -136,7 +137,7 @@ function AdminProducts() {
                         onClick={() => {
                           if (confirm(`Удалить «${p.name}»?`)) {
                             void remove(p.id).catch((error) => {
-                              setStatus(error instanceof Error ? error.message : "Не удалось удалить из БД");
+                              setStatus(friendlyDbError(error, "Не удалось удалить из БД"));
                             });
                           }
                         }}
