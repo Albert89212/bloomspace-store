@@ -1,50 +1,45 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { StaffRole } from "./admin-store";
-import { createId } from "./id";
+import { serverLogin, serverLogout, serverMe, serverSignup } from "./auth.functions";
 
-// Демо-аутентификация: пользователи и сессия хранятся в localStorage.
-// В проде — заменить на JWT-эндпоинты Express (server/src/routes/auth.ts).
+// Клиент хранит только безопасный профиль текущей сессии; пароли и список пользователей остаются на сервере.
 
 export interface AppUser {
   id: string;
   name: string;
   email: string;
-  password: string; // demo-only, plaintext. В проде — хешируем на бэкенде.
   role: StaffRole | "customer" | "dealer";
   referralCode: string;
   referredBy?: string; // referralCode того, кто пригласил
   bonusBalance: number; // бонусные рубли за приглашённых
   createdAt: number;
   emailVerified?: boolean;
+  invitedCount?: number;
 }
 
 interface AuthState {
   users: AppUser[];
   currentUserId: string | null;
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   signup: (data: {
     name: string;
     email: string;
     password: string;
     referralCode?: string;
-  }) => { ok: true } | { ok: false; error: string };
-  login: (email: string, password: string) => { ok: true } | { ok: false; error: string };
-  logout: () => void;
+  }) => Promise<{ ok: true } | { ok: false; error: string }>;
+  login: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  logout: () => Promise<void>;
   updateUser: (id: string, patch: Partial<AppUser>) => void;
   removeUser: (id: string) => void;
   addBonus: (id: string, delta: number) => void;
-}
-
-function code(len = 6) {
-  const s = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length: len }, () => s[Math.floor(Math.random() * s.length)]).join("");
 }
 
 const TEST_OWNER: AppUser = {
   id: "owner-seed",
   name: "Альберт Тогашев",
   email: "owner@sadova.ru",
-  password: "owner123",
   role: "owner",
   referralCode: "OWNER1",
   bonusBalance: 0,
@@ -57,58 +52,61 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       users: [TEST_OWNER],
       currentUserId: null,
-      signup: ({ name, email, password, referralCode }) => {
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const { user } = await serverMe();
+          set({ users: user ? [user as AppUser] : [TEST_OWNER], currentUserId: user?.id ?? null, _hydrated: true });
+          return;
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
+      signup: async ({ name, email, password, referralCode }) => {
         email = email.trim().toLowerCase();
         if (!/\S+@\S+\.\S+/.test(email)) return { ok: false, error: "Некорректный email" };
         if (password.length < 6) return { ok: false, error: "Пароль минимум 6 символов" };
-        if (get().users.some((u) => u.email === email))
-          return { ok: false, error: "Email уже зарегистрирован" };
-        const referrer = referralCode
-          ? get().users.find(
-              (u) => u.referralCode.toUpperCase() === referralCode.toUpperCase(),
-            )
-          : undefined;
-        const user: AppUser = {
-          id: createId("user"),
-          name: name.trim(),
-          email,
-          password,
-          role: "customer",
-          referralCode: code(),
-          referredBy: referrer?.referralCode,
-          bonusBalance: referrer ? 500 : 0,
-          createdAt: Date.now(),
-          emailVerified: true,
-        };
-        set((s) => ({
-          users: s.users.map((u) =>
-            referrer && u.id === referrer.id ? { ...u, bonusBalance: u.bonusBalance + 1000 } : u,
-          ).concat(user),
-          currentUserId: user.id,
-        }));
-        return { ok: true };
+        try {
+          const res = await serverSignup({ data: { name: name.trim(), email, password, referralCode } });
+          set({ users: [res.user as AppUser], currentUserId: res.user.id, _hydrated: true });
+          return { ok: true };
+        } catch (error) {
+          return { ok: false, error: error instanceof Error ? error.message : "Не удалось зарегистрироваться" };
+        }
       },
-      login: (email, password) => {
+      login: async (email, password) => {
         email = email.trim().toLowerCase();
-        const u = get().users.find((x) => x.email === email && x.password === password);
-        if (!u) return { ok: false, error: "Неверный email или пароль" };
-        set({ currentUserId: u.id });
-        return { ok: true };
+        try {
+          const res = await serverLogin({ data: { email, password } });
+          set({ users: [res.user as AppUser], currentUserId: res.user.id, _hydrated: true });
+          return { ok: true };
+        } catch (error) {
+          return { ok: false, error: error instanceof Error ? error.message : "Неверный email или пароль" };
+        }
       },
-      logout: () => set({ currentUserId: null }),
+      logout: async () => {
+        await serverLogout().catch(() => {});
+        set({ currentUserId: null, users: [TEST_OWNER] });
+      },
       updateUser: (id, patch) =>
-        set((s) => ({ users: s.users.map((u) => (u.id === id ? { ...u, ...patch } : u)) })),
+        set((s) => {
+          const users = s.users.map((u) => (u.id === id ? { ...u, ...patch } : u));
+          return { users };
+        }),
       removeUser: (id) =>
-        set((s) => ({
-          users: s.users.filter((u) => u.id !== id),
-          currentUserId: s.currentUserId === id ? null : s.currentUserId,
-        })),
+        set((s) => {
+          const users = s.users.filter((u) => u.id !== id);
+          return { users, currentUserId: s.currentUserId === id ? null : s.currentUserId };
+        }),
       addBonus: (id, delta) =>
-        set((s) => ({
-          users: s.users.map((u) =>
+        set((s) => {
+          const users = s.users.map((u) =>
             u.id === id ? { ...u, bonusBalance: Math.max(0, u.bonusBalance + delta) } : u,
-          ),
-        })),
+          );
+          return { users };
+        }),
     }),
     { name: "sadova-auth" },
   ),

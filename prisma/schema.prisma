@@ -48,6 +48,10 @@ model User {
   name         String?
   passwordHash String
   role         Role      @default(USER)
+  referralCode String?   @unique
+  referredBy   String?
+  bonusBalance Int       @default(0)
+  emailVerified Boolean  @default(true)
   twoFactorSecret String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -87,6 +91,7 @@ model Product {
   id          String   @id @default(uuid())
   slug        String   @unique
   name        String
+  tagline     String   @default("")
   description String   @db.Text
   price       Int      // в копейках
   currency    String   @default("RUB")
@@ -209,6 +214,8 @@ model Message {
 model SupportThread {
   id        String   @id @default(uuid())
   userId    String   @unique
+  userName  String
+  userEmail String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   closedAt  DateTime?
@@ -259,6 +266,8 @@ model Announcement {
   title       String
   body        String            @db.Text
   imageUrl    String?
+  likes       Json?
+  comments    Json?
   pinned      Boolean           @default(false)
   authorId    String
   authorName  String
@@ -274,6 +283,29 @@ model Announcement {
 model RoleLabel {
   role  Role   @id
   label String
+}
+
+// Глобальные правки владельца: тексты, фото и видео сайта.
+model CmsEntry {
+  key       String   @id
+  value     String   @db.LongText
+  kind      String   @default("text")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+// Универсальные коллекции приложения, которые должны быть общими для всех пользователей:
+// товары из админки, новости, чаты, заказы, отзывы, промокоды и заявки.
+model AppRecord {
+  id         String   @id @default(uuid())
+  collection String
+  recordKey  String
+  value      Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([collection, recordKey])
+  @@index([collection])
 }
 
 model Agreement {

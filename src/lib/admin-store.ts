@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 // Demo-only role storage persisted in localStorage.
 // Backend replaces this with a real JWT role check (server/src/middleware/auth.ts).
@@ -44,6 +45,8 @@ interface AdminState {
   isAdmin: boolean;
   role: StaffRole | null;
   staff: StaffMember[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   /** Пользовательские названия должностей (задаёт Владелец). */
   customRoleLabels: Partial<Record<StaffRole, string>>;
   login: (role?: StaffRole) => void;
@@ -58,6 +61,13 @@ interface AdminState {
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+const pushStaff = (staff: StaffMember[]) => {
+  void saveCollection({ data: { name: "staff", items: staff } }).catch(() => {});
+};
+const pushLabels = (labels: Partial<Record<StaffRole, string>>) => {
+  const items = Object.entries(labels).map(([role, label]) => ({ id: role, role, label }));
+  void saveCollection({ data: { name: "role-labels", items } }).catch(() => {});
+};
 
 export const useAdmin = create<AdminState>()(
   persist(
@@ -65,30 +75,66 @@ export const useAdmin = create<AdminState>()(
       isAdmin: false,
       role: null,
       staff: [],
+      _hydrated: false,
       customRoleLabels: {},
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const [staff, labels] = await Promise.all([
+            fetchCollection({ data: { name: "staff" } }),
+            fetchCollection({ data: { name: "role-labels" } }),
+          ]);
+          const customRoleLabels = Array.isArray(labels)
+            ? labels.reduce<Partial<Record<StaffRole, string>>>((acc, item: any) => {
+                if (item?.role && item?.label) acc[item.role as StaffRole] = String(item.label);
+                return acc;
+              }, {})
+            : {};
+          set({
+            staff: Array.isArray(staff) ? (staff as StaffMember[]) : get().staff,
+            customRoleLabels,
+            _hydrated: true,
+          });
+          return;
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       login: (role = "owner") => set({ isAdmin: true, role }),
       logout: () => set({ isAdmin: false, role: null }),
       addStaff: (s) =>
-        set((st) => ({
-          staff: [
+        set((st) => {
+          const staff = [
             { ...s, id: uid(), createdAt: Date.now(), email: s.email.trim().toLowerCase() },
             ...st.staff,
-          ],
-        })),
+          ];
+          pushStaff(staff);
+          return { staff };
+        }),
       updateStaff: (id, patch) =>
-        set((st) => ({
-          staff: st.staff.map((x) => (x.id === id ? { ...x, ...patch } : x)),
-        })),
+        set((st) => {
+          const staff = st.staff.map((x) => (x.id === id ? { ...x, ...patch } : x));
+          pushStaff(staff);
+          return { staff };
+        }),
       removeStaff: (id) =>
-        set((st) => ({ staff: st.staff.filter((x) => x.id !== id) })),
+        set((st) => {
+          const staff = st.staff.filter((x) => x.id !== id);
+          pushStaff(staff);
+          return { staff };
+        }),
       setRoleLabel: (role, label) =>
-        set((st) => ({
-          customRoleLabels: { ...st.customRoleLabels, [role]: label.trim() || roleLabel[role] },
-        })),
+        set((st) => {
+          const customRoleLabels = { ...st.customRoleLabels, [role]: label.trim() || roleLabel[role] };
+          pushLabels(customRoleLabels);
+          return { customRoleLabels };
+        }),
       resetRoleLabel: (role) =>
         set((st) => {
           const next = { ...st.customRoleLabels };
           delete next[role];
+          pushLabels(next);
           return { customRoleLabels: next };
         }),
       getLabel: (role) => get().customRoleLabels[role] ?? roleLabel[role],

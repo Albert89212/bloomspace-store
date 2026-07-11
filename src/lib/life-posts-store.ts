@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 export interface LifeComment {
   id: string;
@@ -24,6 +25,8 @@ export interface LifePost {
 
 interface LifeState {
   items: LifePost[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   add: (p: Omit<LifePost, "id" | "createdAt" | "likes" | "comments">) => void;
   remove: (id: string) => void;
   toggleLike: (postId: string, userId: string) => void;
@@ -31,21 +34,45 @@ interface LifeState {
   removeComment: (postId: string, commentId: string) => void;
 }
 
+const push = (items: LifePost[]) => {
+  void saveCollection({ data: { name: "life-posts", items } }).catch(() => {});
+};
+
 export const useLifePosts = create<LifeState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       items: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "life-posts" } })) as LifePost[];
+          if (Array.isArray(remote)) {
+            set({ items: remote, _hydrated: true });
+            return;
+          }
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       add: (p) =>
-        set((s) => ({
-          items: [
+        set((s) => {
+          const items = [
             { ...p, id: createId("life"), createdAt: Date.now(), likes: [], comments: [] },
             ...s.items,
-          ],
-        })),
-      remove: (id) => set((s) => ({ items: s.items.filter((p) => p.id !== id) })),
+          ];
+          push(items);
+          return { items };
+        }),
+      remove: (id) => set((s) => {
+        const items = s.items.filter((p) => p.id !== id);
+        push(items);
+        return { items };
+      }),
       toggleLike: (postId, userId) =>
-        set((s) => ({
-          items: s.items.map((p) =>
+        set((s) => {
+          const items = s.items.map((p) =>
             p.id === postId
               ? {
                   ...p,
@@ -54,11 +81,13 @@ export const useLifePosts = create<LifeState>()(
                     : [...p.likes, userId],
                 }
               : p,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       addComment: (postId, c) =>
-        set((s) => ({
-          items: s.items.map((p) =>
+        set((s) => {
+          const items = s.items.map((p) =>
             p.id === postId
               ? {
                   ...p,
@@ -68,16 +97,20 @@ export const useLifePosts = create<LifeState>()(
                   ],
                 }
               : p,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       removeComment: (postId, commentId) =>
-        set((s) => ({
-          items: s.items.map((p) =>
+        set((s) => {
+          const items = s.items.map((p) =>
             p.id === postId
               ? { ...p, comments: p.comments.filter((c) => c.id !== commentId) }
               : p,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
     }),
     { name: "sadova-life-posts-v2" },
   ),

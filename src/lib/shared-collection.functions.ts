@@ -1,12 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const ALLOWED = new Set(["products", "news", "announcements"]);
-
 export const fetchCollection = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ name: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    if (!ALLOWED.has(data.name)) return [] as any[];
+    const allowed = new Set([
+      "products",
+      "news",
+      "announcements",
+      "orders",
+      "reviews",
+      "support-threads",
+      "staff-chat",
+      "promocodes",
+      "tickets",
+      "life-posts",
+      "back-in-stock",
+      "staff",
+      "role-labels",
+      "cms",
+    ]);
+    if (!allowed.has(data.name)) return [] as any[];
     const { readCollection } = await import("./shared-collection.server");
     return readCollection<any>(data.name);
   });
@@ -16,8 +30,24 @@ export const saveCollection = createServerFn({ method: "POST" })
     z.object({ name: z.string(), items: z.array(z.any()) }).parse(data),
   )
   .handler(async ({ data }) => {
-    if (!ALLOWED.has(data.name)) throw new Error("Unknown collection");
+    const allowed = new Set([
+      "products",
+      "news",
+      "announcements",
+      "orders",
+      "reviews",
+      "support-threads",
+      "staff-chat",
+      "promocodes",
+      "tickets",
+      "life-posts",
+      "back-in-stock",
+      "staff",
+      "role-labels",
+      "cms",
+    ]);
+    if (!allowed.has(data.name)) throw new Error("Unknown collection");
     const { writeCollection } = await import("./shared-collection.server");
-    writeCollection(data.name, data.items);
+    await writeCollection(data.name, data.items);
     return { ok: true };
   });

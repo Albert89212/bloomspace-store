@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "./cart-store";
 import { createId } from "./id";
+import { fetchCollection, saveCollection } from "./shared-collection.functions";
 
 export type PaymentMethod = "card" | "sbp" | "yookassa";
 export type DeliveryMethod = "ozon" | "pochta" | "courier";
@@ -44,6 +45,8 @@ export interface Order {
 
 interface OrdersState {
   items: Order[];
+  _hydrated: boolean;
+  hydrate: () => Promise<void>;
   create: (o: Omit<Order, "id" | "number" | "createdAt" | "status" | "messages">) => Order;
   setStatus: (id: string, status: OrderStatus) => void;
   addMessage: (
@@ -65,10 +68,28 @@ interface OrdersState {
 
 const MESSAGE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 дней — авто-удаление переписки
 
+const push = (items: Order[]) => {
+  void saveCollection({ data: { name: "orders", items } }).catch(() => {});
+};
+
 export const useOrders = create<OrdersState>()(
   persist(
     (set, get) => ({
       items: [],
+      _hydrated: false,
+      hydrate: async () => {
+        if (get()._hydrated) return;
+        try {
+          const remote = (await fetchCollection({ data: { name: "orders" } })) as Order[];
+          if (Array.isArray(remote) && remote.length) {
+            set({ items: remote.map((o) => ({ ...o, messages: o.messages ?? [] })), _hydrated: true });
+            return;
+          }
+        } catch {
+          /* keep local cache */
+        }
+        set({ _hydrated: true });
+      },
       create: (o) => {
         const id = createId("order");
         const number = `SD-${String(get().items.length + 1001).padStart(5, "0")}`;
@@ -80,14 +101,22 @@ export const useOrders = create<OrdersState>()(
           status: "new",
           messages: [],
         };
-        set((s) => ({ items: [order, ...s.items] }));
+        set((s) => {
+          const items = [order, ...s.items];
+          push(items);
+          return { items };
+        });
         return order;
       },
       setStatus: (id, status) =>
-        set((s) => ({ items: s.items.map((o) => (o.id === id ? { ...o, status } : o)) })),
+        set((s) => {
+          const items = s.items.map((o) => (o.id === id ? { ...o, status } : o));
+          push(items);
+          return { items };
+        }),
       addMessage: (orderId, m) =>
-        set((s) => ({
-          items: s.items.map((o) =>
+        set((s) => {
+          const items = s.items.map((o) =>
             o.id === orderId
               ? {
                   ...o,
@@ -97,38 +126,48 @@ export const useOrders = create<OrdersState>()(
                   ],
                 }
               : o,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       requestDeleteMessages: (orderId, by, byName) =>
-        set((s) => ({
-          items: s.items.map((o) =>
+        set((s) => {
+          const items = s.items.map((o) =>
             o.id === orderId
               ? { ...o, deleteRequest: { by, byName, at: Date.now() } }
               : o,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       cancelDeleteRequest: (orderId) =>
-        set((s) => ({
-          items: s.items.map((o) =>
+        set((s) => {
+          const items = s.items.map((o) =>
             o.id === orderId ? { ...o, deleteRequest: null } : o,
-          ),
-        })),
+          );
+          push(items);
+          return { items };
+        }),
       confirmDeleteMessages: (orderId, by) =>
-        set((s) => ({
-          items: s.items.map((o) => {
+        set((s) => {
+          const items = s.items.map((o) => {
             if (o.id !== orderId) return o;
             if (!o.deleteRequest || o.deleteRequest.by === by) return o;
             return { ...o, messages: [], deleteRequest: null };
-          }),
-        })),
+          });
+          push(items);
+          return { items };
+        }),
       pruneOldMessages: () => {
         const now = Date.now();
-        set((s) => ({
-          items: s.items.map((o) => ({
+        set((s) => {
+          const items = s.items.map((o) => ({
             ...o,
             messages: (o.messages ?? []).filter((m) => now - m.createdAt < MESSAGE_TTL_MS),
-          })),
-        }));
+          }));
+          push(items);
+          return { items };
+        });
       },
     }),
     {
