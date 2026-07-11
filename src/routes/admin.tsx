@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { LogIn, LogOut, ShieldCheck } from "lucide-react";
-import { useAdmin, roleLabel, type StaffRole } from "@/lib/admin-store";
+import { useAdmin, roleLabel, useRoleLabel, type StaffRole } from "@/lib/admin-store";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -20,8 +20,8 @@ const tabs: { to: string; label: string; perm: string }[] = [
   { to: "/admin/orders", label: "Заказы", perm: "orders" },
   { to: "/admin/reviews", label: "Отзывы", perm: "reviews" },
   { to: "/admin/tickets", label: "Тикеты", perm: "tickets" },
-  { to: "/admin/chats", label: "Чаты заказов", perm: "chats" },
-  { to: "/admin/news", label: "Новости", perm: "products" },
+  { to: "/admin/chats", label: "Чаты клиентов", perm: "chats" },
+  { to: "/admin/news", label: "Новости", perm: "news" },
   { to: "/admin/life", label: "Жизнь", perm: "life" },
   { to: "/admin/staff", label: "Должности", perm: "staff" },
 ];
@@ -33,6 +33,7 @@ function AdminLayout() {
   const logout = useAdmin((s) => s.logout);
   const can = useAdmin((s) => s.can);
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const currentRoleLabel = useRoleLabel(role);
 
   if (!isAdmin || !role) return <LoginScreen onLogin={login} />;
 
@@ -43,7 +44,7 @@ function AdminLayout() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
-            <ShieldCheck className="h-3.5 w-3.5" /> Админ-панель · {roleLabel[role]}
+            <ShieldCheck className="h-3.5 w-3.5" /> Админ-панель · {currentRoleLabel}
           </div>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">SADOVA</h1>
         </div>
@@ -88,7 +89,9 @@ function AdminLayout() {
 }
 
 function LoginScreen({ onLogin }: { onLogin: (r?: StaffRole) => void }) {
-  const roles: StaffRole[] = ["owner", "admin", "moderator", "support"];
+  const roles: StaffRole[] = ["owner", "admin", "moderator", "support", "orders"];
+  const labels = useAdmin((s) => s.customRoleLabels);
+  const lbl = (r: StaffRole) => labels[r] ?? roleLabel[r];
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 text-center">
       <ShieldCheck className="h-10 w-10 text-muted-foreground" />
@@ -107,7 +110,7 @@ function LoginScreen({ onLogin }: { onLogin: (r?: StaffRole) => void }) {
                 : "border border-hairline hover:bg-secondary"
             }`}
           >
-            <LogIn className="h-4 w-4" /> Войти как {roleLabel[r]}
+            <LogIn className="h-4 w-4" /> Войти как {lbl(r)}
           </button>
         ))}
       </div>
