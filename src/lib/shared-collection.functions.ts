@@ -19,6 +19,7 @@ export const fetchCollection = createServerFn({ method: "GET" })
       "users",
       "staff",
       "role-labels",
+      "cms",
     ]);
     if (!allowed.has(data.name)) return [] as any[];
     const { readCollection } = await import("./shared-collection.server");
@@ -45,6 +46,7 @@ export const saveCollection = createServerFn({ method: "POST" })
       "users",
       "staff",
       "role-labels",
+      "cms",
     ]);
     if (!allowed.has(data.name)) throw new Error("Unknown collection");
     const { writeCollection } = await import("./shared-collection.server");
