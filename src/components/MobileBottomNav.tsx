@@ -4,13 +4,14 @@ import { useCart, selectCartCount } from "@/lib/cart-store";
 import { useSupportChat } from "@/lib/support-chat-store";
 import { useCurrentUser } from "@/lib/auth-store";
 
-const items = [
+type NavItem = { to: "/" | "/catalog" | "/cart" | "/chats" | "/auth"; label: string; icon: typeof Home; exact?: boolean };
+const items: NavItem[] = [
   { to: "/", label: "Главная", icon: Home, exact: true },
   { to: "/catalog", label: "Каталог", icon: LayoutGrid },
   { to: "/cart", label: "Корзина", icon: ShoppingBag },
   { to: "/chats", label: "Чаты", icon: MessageSquare },
   { to: "/auth", label: "Профиль", icon: User },
-] as const;
+];
 
 const HIDDEN_PREFIXES = ["/admin", "/checkout", "/order"];
 
