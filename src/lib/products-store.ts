@@ -6,6 +6,7 @@ import { fetchCollection, saveCollection } from "./shared-collection.functions";
 interface ProductsState {
   items: Product[];
   _hydrated: boolean;
+  _dbAvailable: boolean;
   hydrate: () => Promise<void>;
   create: (p: Omit<Product, "id" | "rating">) => Promise<Product>;
   update: (id: string, patch: Partial<Product>) => Promise<void>;
@@ -39,16 +40,17 @@ export const useProducts = create<ProductsState>()(
     (set, get) => ({
       items: [],
       _hydrated: false,
+      _dbAvailable: true,
       hydrate: async () => {
         try {
           const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
           if (Array.isArray(remote)) {
-            set({ items: remote, _hydrated: true });
+            set({ items: remote, _hydrated: true, _dbAvailable: true });
             return;
           }
         } catch (error) {
-          console.error("Не удалось загрузить объявления из БД", error);
-          /* keep local cache */
+          console.warn("БД недоступна — работаем с локальным кэшем объявлений", error);
+          set({ _dbAvailable: false });
         } finally {
           set({ _hydrated: true });
         }
@@ -59,40 +61,40 @@ export const useProducts = create<ProductsState>()(
         let n = 2;
         while (get().items.some((x) => x.slug === slug)) slug = `${base}-${n++}`;
         const product: Product = { ...p, slug, id: uid(), rating: 5 };
-        const previous = get().items;
-        const items = [product, ...previous];
+        const items = [product, ...get().items];
         set({ items, _hydrated: true });
-        try {
-          await saveCollection({ data: { name: "products", items } });
-        } catch (error) {
-          set({ items: previous, _hydrated: true });
-          console.error("Не удалось сохранить объявления в БД", error);
-          throw error;
+        if (get()._dbAvailable) {
+          try {
+            await saveCollection({ data: { name: "products", items } });
+          } catch (error) {
+            console.warn("БД недоступна — объявление сохранено локально", error);
+            set({ _dbAvailable: false });
+          }
         }
         return product;
       },
       update: async (id, patch) => {
-        const previous = get().items;
-        const items = previous.map((x) => (x.id === id ? { ...x, ...patch } : x));
+        const items = get().items.map((x) => (x.id === id ? { ...x, ...patch } : x));
         set({ items, _hydrated: true });
-        try {
-          await saveCollection({ data: { name: "products", items } });
-        } catch (error) {
-          set({ items: previous, _hydrated: true });
-          console.error("Не удалось сохранить объявления в БД", error);
-          throw error;
+        if (get()._dbAvailable) {
+          try {
+            await saveCollection({ data: { name: "products", items } });
+          } catch (error) {
+            console.warn("БД недоступна — правка сохранена локально", error);
+            set({ _dbAvailable: false });
+          }
         }
       },
       remove: async (id) => {
-        const previous = get().items;
-        const items = previous.filter((x) => x.id !== id);
+        const items = get().items.filter((x) => x.id !== id);
         set({ items, _hydrated: true });
-        try {
-          await saveCollection({ data: { name: "products", items } });
-        } catch (error) {
-          set({ items: previous, _hydrated: true });
-          console.error("Не удалось сохранить объявления в БД", error);
-          throw error;
+        if (get()._dbAvailable) {
+          try {
+            await saveCollection({ data: { name: "products", items } });
+          } catch (error) {
+            console.warn("БД недоступна — удаление сохранено локально", error);
+            set({ _dbAvailable: false });
+          }
         }
       },
       findBySlug: (slug) => get().items.find((x) => x.slug === slug),

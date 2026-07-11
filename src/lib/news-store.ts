@@ -29,6 +29,7 @@ export interface NewsPost {
 interface State {
   items: NewsPost[];
   _hydrated: boolean;
+  _dbAvailable: boolean;
   hydrate: () => Promise<void>;
   create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => Promise<NewsPost>;
   remove: (id: string) => void;
@@ -39,29 +40,23 @@ interface State {
   pin: (id: string, v: boolean) => void;
 }
 
-const persistNews = (items: NewsPost[]) => saveCollection({ data: { name: "news", items } });
-
-const push = (items: NewsPost[]) => {
-  void persistNews(items).catch((error) => {
-    console.error("Не удалось сохранить новости в БД", error);
-  });
-};
-
 export const useNews = create<State>()(
   persist(
     (set, get) => ({
       items: [],
       _hydrated: false,
+      _dbAvailable: true,
+      // helpers defined inside so they can read/update dbAvailable flag
       hydrate: async () => {
         try {
           const remote = (await fetchCollection({ data: { name: "news" } })) as NewsPost[];
           if (Array.isArray(remote)) {
-            set({ items: remote, _hydrated: true });
+            set({ items: remote, _hydrated: true, _dbAvailable: true });
             return;
           }
         } catch (error) {
-          console.error("Не удалось загрузить новости из БД", error);
-          /* keep local cache */
+          console.warn("БД недоступна — работаем с локальным кэшем новостей", error);
+          set({ _dbAvailable: false });
         } finally {
           set({ _hydrated: true });
         }
@@ -74,28 +69,28 @@ export const useNews = create<State>()(
           likes: [],
           comments: [],
         };
-        const previous = get().items;
-        const items = [post, ...previous];
+        const items = [post, ...get().items];
         set({ items, _hydrated: true });
-        try {
-          await persistNews(items);
-        } catch (error) {
-          set({ items: previous, _hydrated: true });
-          console.error("Не удалось сохранить новости в БД", error);
-          throw error;
+        if (get()._dbAvailable) {
+          try {
+            await saveCollection({ data: { name: "news", items } });
+          } catch (error) {
+            console.warn("БД недоступна — новость сохранена локально", error);
+            set({ _dbAvailable: false });
+          }
         }
         return post;
       },
       remove: (id) =>
         set((s) => {
           const items = s.items.filter((x) => x.id !== id);
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
       update: (id, patch) =>
         set((s) => {
           const items = s.items.map((x) => (x.id === id ? { ...x, ...patch } : x));
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
       toggleLike: (postId, userId) =>
@@ -110,7 +105,7 @@ export const useNews = create<State>()(
                 }
               : x,
           );
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
       addComment: (postId, c) =>
@@ -126,7 +121,7 @@ export const useNews = create<State>()(
                 }
               : x,
           );
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
       removeComment: (postId, commentId) =>
@@ -136,16 +131,28 @@ export const useNews = create<State>()(
               ? { ...x, comments: x.comments.filter((c) => c.id !== commentId) }
               : x,
           );
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
       pin: (id, v) =>
         set((s) => {
           const items = s.items.map((x) => (x.id === id ? { ...x, pinned: v } : x));
-          push(items);
+          pushNews(items, s._dbAvailable, set);
           return { items, _hydrated: true };
         }),
     }),
     { name: "sadova-news", partialize: (state) => ({ items: state.items }) },
   ),
 );
+
+function pushNews(
+  items: NewsPost[],
+  dbAvailable: boolean,
+  set: (partial: Partial<State>) => void,
+) {
+  if (!dbAvailable) return;
+  void saveCollection({ data: { name: "news", items } }).catch((error) => {
+    console.warn("БД недоступна — новости сохранены локально", error);
+    set({ _dbAvailable: false });
+  });
+}
