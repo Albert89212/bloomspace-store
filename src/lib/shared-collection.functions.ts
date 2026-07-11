@@ -6,9 +6,9 @@ const ALLOWED = new Set(["products", "news", "announcements"]);
 export const fetchCollection = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ name: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    if (!ALLOWED.has(data.name)) return [] as unknown[];
+    if (!ALLOWED.has(data.name)) return [] as any[];
     const { readCollection } = await import("./shared-collection.server");
-    return readCollection(data.name);
+    return readCollection<any>(data.name);
   });
 
 export const saveCollection = createServerFn({ method: "POST" })
