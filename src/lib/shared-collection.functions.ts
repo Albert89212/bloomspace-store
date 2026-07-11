@@ -23,7 +23,7 @@ export const fetchCollection = createServerFn({ method: "GET" })
     if (!allowed.has(data.name)) return [] as any[];
     try {
       const { readCollection } = await import("./shared-collection.server");
-      return readCollection<any>(data.name);
+      return await readCollection<any>(data.name);
     } catch (error) {
       console.warn(`Shared collection "${data.name}" is unavailable`, error);
       return null;
