@@ -1,19 +1,19 @@
 import { randomUUID } from "crypto";
-import { PrismaClient } from "@prisma/client";
+import mysql from "mysql2/promise";
 
-let prisma: PrismaClient | null = null;
+let pool: mysql.Pool | null = null;
 let appRecordTableReady = false;
 const PACKED_COLLECTION_KEY = "__collection__";
 
 function db() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL не задан — общие объявления не могут сохраняться в БД");
-  prisma ??= new PrismaClient();
-  return prisma;
+  pool ??= mysql.createPool(process.env.DATABASE_URL);
+  return pool;
 }
 
-async function ensureAppRecordTable(client: PrismaClient) {
+async function ensureAppRecordTable(client: mysql.Pool) {
   if (appRecordTableReady) return;
-  await client.$executeRawUnsafe(`
+  await client.execute(`
     CREATE TABLE IF NOT EXISTS \`AppRecord\` (
       \`id\` VARCHAR(191) NOT NULL,
       \`collection\` VARCHAR(191) NOT NULL,
@@ -43,7 +43,7 @@ function parseJson<T>(value: unknown): T {
 export async function readCollection<T = unknown>(name: string): Promise<T[]> {
   const client = db();
   await ensureAppRecordTable(client);
-  const rows = await client.$queryRawUnsafe<Array<{ recordKey: string; value: unknown }>>(
+  const [rows] = await client.execute<Array<mysql.RowDataPacket & { recordKey: string; value: unknown }>>(
     "SELECT `recordKey`, `value` FROM `AppRecord` WHERE `collection` = ? ORDER BY `createdAt` ASC",
     name,
   );
@@ -59,14 +59,19 @@ export async function writeCollection<T = unknown>(name: string, items: T[]): Pr
   const client = db();
   await ensureAppRecordTable(client);
   const payload = JSON.stringify(items);
-  await client.$transaction(async (tx) => {
-    await tx.$executeRawUnsafe("DELETE FROM `AppRecord` WHERE `collection` = ?", name);
-    await tx.$executeRawUnsafe(
+  const connection = await client.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute("DELETE FROM `AppRecord` WHERE `collection` = ?", [name]);
+    await connection.execute(
       "INSERT INTO `AppRecord` (`id`, `collection`, `recordKey`, `value`, `createdAt`, `updatedAt`) VALUES (?, ?, ?, ?, NOW(3), NOW(3))",
-      randomUUID(),
-      name,
-      PACKED_COLLECTION_KEY,
-      payload,
+      [randomUUID(), name, PACKED_COLLECTION_KEY, payload],
     );
-  });
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
