@@ -126,7 +126,7 @@ export async function registerUser(data: { name: string; email: string; password
     }
     let code = referralCode();
     for (let i = 0; i < 5; i += 1) {
-      const taken = await tx.user.findUnique({ where: { referralCode: code } });
+      const taken = await tx.user.findFirst({ where: { referralCode: code } });
       if (!taken) break;
       code = referralCode();
     }
