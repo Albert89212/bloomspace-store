@@ -8,6 +8,8 @@ export type TicketStatus = "open" | "in_progress" | "resolved";
 export interface TicketMessage {
   id: string;
   author: "client" | "support";
+  authorName?: string;
+  authorRole?: string; // отображается клиенту: "Техподдержка", "Модератор" и т.п.
   text: string;
   createdAt: number;
 }
@@ -16,6 +18,7 @@ export interface Ticket {
   id: string;
   subject: string;
   email: string;
+  userId?: string; // если тикет создал зарегистрированный пользователь
   status: TicketStatus;
   createdAt: number;
   messages: TicketMessage[];
@@ -25,8 +28,13 @@ interface TicketsState {
   items: Ticket[];
   _hydrated: boolean;
   hydrate: () => Promise<void>;
-  create: (t: { subject: string; email: string; text: string }) => string;
-  reply: (id: string, author: "client" | "support", text: string) => void;
+  create: (t: { subject: string; email: string; text: string; userId?: string; authorName?: string }) => string;
+  reply: (
+    id: string,
+    author: "client" | "support",
+    text: string,
+    meta?: { authorName?: string; authorRole?: string },
+  ) => void;
   setStatus: (id: string, status: TicketStatus) => void;
 }
 
@@ -58,12 +66,14 @@ export const useTickets = create<TicketsState>()(
           id,
           subject: t.subject,
           email: t.email,
+          userId: t.userId,
           status: "open",
           createdAt: Date.now(),
           messages: [
             {
               id: createId("message"),
               author: "client",
+              authorName: t.authorName ?? t.email,
               text: t.text,
               createdAt: Date.now(),
             },
@@ -76,7 +86,7 @@ export const useTickets = create<TicketsState>()(
         });
         return id;
       },
-      reply: (id, author, text) =>
+      reply: (id, author, text, meta) =>
         set((s) => {
           const items = s.items.map((t) =>
             t.id === id
@@ -84,7 +94,14 @@ export const useTickets = create<TicketsState>()(
                   ...t,
                   messages: [
                     ...t.messages,
-                    { id: createId("message"), author, text, createdAt: Date.now() },
+                    {
+                      id: createId("message"),
+                      author,
+                      authorName: meta?.authorName,
+                      authorRole: meta?.authorRole,
+                      text,
+                      createdAt: Date.now(),
+                    },
                   ],
                 }
               : t,

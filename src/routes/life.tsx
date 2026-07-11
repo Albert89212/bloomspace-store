@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Play, Send, Volume2, VolumeX } from "lucide-react";
+import { Heart, Lock, MessageCircle, Play, Send, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLifePosts, type LifePost } from "@/lib/life-posts-store";
 import { useCurrentUser } from "@/lib/auth-store";
@@ -28,6 +28,32 @@ export const Route = createFileRoute("/life")({
 
 function LifePage() {
   const posts = useLifePosts((s) => s.items);
+  const user = useCurrentUser();
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-24">
+        <div className="rounded-3xl border border-hairline bg-surface p-10 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
+            <Lock className="h-6 w-6" />
+          </div>
+          <h1 className="mt-5 text-2xl font-semibold tracking-tight">Только для зарегистрированных</h1>
+          <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+            «Жизнь магазина» — закрытый раздел SADOVA. Здесь мы показываем производство,
+            монтажи и закулисье. Войдите или зарегистрируйтесь, чтобы получить доступ и
+            возможность оставлять лайки и комментарии.
+          </p>
+          <Link
+            to="/auth"
+            className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-8 text-[13px] font-medium text-background"
+          >
+            Войти или зарегистрироваться
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <motion.div

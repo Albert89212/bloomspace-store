@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTickets, type TicketStatus } from "@/lib/tickets-store";
+import { useAdmin, roleLabel } from "@/lib/admin-store";
+import { useCurrentUser } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/admin/tickets")({
   component: AdminTickets,
@@ -16,8 +18,13 @@ function AdminTickets() {
   const tickets = useTickets((s) => s.items);
   const reply = useTickets((s) => s.reply);
   const setStatus = useTickets((s) => s.setStatus);
+  const role = useAdmin((s) => s.role);
+  const getLabel = useAdmin((s) => s.getLabel);
+  const user = useCurrentUser();
   const [openId, setOpenId] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const staffLabel = role ? getLabel(role) : "Техподдержка";
+  const staffName = user?.name ?? staffLabel;
 
   return (
     <div>
@@ -64,6 +71,11 @@ function AdminTickets() {
                             : "bg-background"
                         }`}
                       >
+                        <div className="mb-1 text-[10px] opacity-70">
+                          {m.author === "support"
+                            ? `${m.authorName ?? staffName} · ${m.authorRole ?? staffLabel}`
+                            : m.authorName ?? t.email}
+                        </div>
                         {m.text}
                       </div>
                     ))}
@@ -78,7 +90,10 @@ function AdminTickets() {
                     <button
                       onClick={() => {
                         if (!text.trim()) return;
-                        reply(t.id, "support", text.trim());
+                        reply(t.id, "support", text.trim(), {
+                          authorName: staffName,
+                          authorRole: staffLabel,
+                        });
                         setText("");
                       }}
                       className="rounded-full bg-foreground px-4 text-[13px] font-medium text-background"

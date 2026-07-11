@@ -1,8 +1,28 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { Copy, LogOut, Sparkles } from "lucide-react";
+import {
+  Bell,
+  Copy,
+  CreditCard,
+  Gift,
+  Heart,
+  LogOut,
+  MessageSquare,
+  Package,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Ticket,
+  UserRound,
+} from "lucide-react";
 import { useAuth, useCurrentUser } from "@/lib/auth-store";
+import { useOrders } from "@/lib/orders-store";
+import { useWishlist, selectWishCount } from "@/lib/wishlist-store";
+import { useTickets } from "@/lib/tickets-store";
+import { useAdmin, roleLabel } from "@/lib/admin-store";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { formatPrice } from "@/lib/products";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -157,69 +177,256 @@ function AuthForm() {
 function AccountPanel() {
   const user = useCurrentUser()!;
   const logout = useAuth((s) => s.logout);
+  const orders = useOrders((s) =>
+    s.items.filter((o) => o.customer.email.toLowerCase() === user.email.toLowerCase()),
+  );
+  const wishCount = useWishlist(selectWishCount);
+  const myTickets = useTickets((s) =>
+    s.items.filter((t) => t.userId === user.id || t.email.toLowerCase() === user.email.toLowerCase()),
+  );
+  const isStaff = user.role !== "customer" && user.role !== "dealer";
+  const getLabel = useAdmin((s) => s.getLabel);
+  const roleTitle = isStaff ? getLabel(user.role as any) : user.role === "dealer" ? "Дилер" : "Клиент";
+
   const inviteLink =
     typeof window !== "undefined"
       ? `${window.location.origin}/auth?ref=${user.referralCode}`
       : `/auth?ref=${user.referralCode}`;
 
+  const [copied, setCopied] = useState(false);
+  const totalSpent = orders.reduce((acc, o) => acc + o.total, 0);
+  const activeOrders = orders.filter((o) => o.status === "new" || o.status === "paid" || o.status === "shipping").length;
+
+  function doCopy() {
+    navigator.clipboard?.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   return (
-    <div className="mx-auto max-w-2xl px-6 py-16">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-[12px] uppercase tracking-widest text-muted-foreground">
-            Личный кабинет · {user.role === "customer" ? "Клиент" : user.role.toUpperCase()}
+    <div className="mx-auto max-w-5xl px-4 py-10 pb-28 md:px-6 md:py-16">
+      {/* Hero */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-foreground to-foreground/90 p-6 text-background md:p-8"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-30 blur-3xl"
+          style={{ background: "conic-gradient(from 210deg, var(--brand), var(--accent-warm), var(--accent-cool))" }}
+        />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-background/10 text-xl font-semibold uppercase backdrop-blur">
+              {user.name.slice(0, 1)}
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-widest opacity-70">{roleTitle}</div>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">{user.name}</h1>
+              <p className="mt-0.5 text-[13px] opacity-80">{user.email}</p>
+            </div>
           </div>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{user.name}</h1>
-          <p className="mt-1 text-[13px] text-muted-foreground">{user.email}</p>
+          <button
+            type="button"
+            onClick={() => void logout()}
+            className="inline-flex items-center gap-2 rounded-full bg-background/10 px-4 py-2 text-[12px] font-medium backdrop-blur transition-colors hover:bg-background/20"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Выйти
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-[12px] hover:bg-secondary"
-        >
-          <LogOut className="h-3.5 w-3.5" /> Выйти
-        </button>
+
+        <div className="relative mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MiniStat label="Заказов" value={String(orders.length)} />
+          <MiniStat label="Активных" value={String(activeOrders)} />
+          <MiniStat label="Куплено на" value={formatPrice(totalSpent)} />
+          <MiniStat label="Бонусов" value={`${user.bonusBalance} ₽`} />
+        </div>
+      </motion.div>
+
+      {/* Quick actions */}
+      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Action to="/wishlist" icon={Heart} label="Избранное" hint={`${wishCount} товаров`} />
+        <Action to="/cart" icon={Package} label="Корзина" hint="Оформить заказ" />
+        <Action to="/chats" icon={MessageSquare} label="Чаты" hint="Новости и поддержка" />
+        <Action to="/support" icon={Ticket} label="Тикеты" hint={`${myTickets.length} обращений`} />
       </div>
 
-      <div className="mt-8 rounded-3xl bg-surface p-6">
+      {/* Referral */}
+      <section className="mt-8 rounded-3xl bg-surface p-6">
         <div className="flex items-center gap-2 text-[13px] font-medium">
-          <Sparkles className="h-4 w-4" /> Реферальная программа
+          <Sparkles className="h-4 w-4" style={{ color: "var(--brand)" }} /> Реферальная программа
         </div>
         <p className="mt-2 text-[13px] text-muted-foreground">
-          Приглашайте друзей — вы получаете <b>1 000 ₽</b> бонусов за каждого,
-          друг получает <b>500 ₽</b> приветственных.
+          Приглашайте друзей — вы получаете <b>1 000 ₽</b> бонусов за каждого, друг получает <b>500 ₽</b> приветственных.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Stat label="Ваш код" value={user.referralCode} mono />
           <Stat label="Приглашено" value={String(user.invitedCount ?? 0)} />
           <Stat label="Бонусов" value={`${user.bonusBalance} ₽`} />
         </div>
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <input
             readOnly
             value={inviteLink}
-            className="h-10 flex-1 rounded-full border border-hairline bg-background px-4 text-[12px]"
+            className="h-10 min-w-0 flex-1 rounded-full border border-hairline bg-background px-4 text-[12px]"
             onFocus={(e) => e.currentTarget.select()}
           />
           <button
             type="button"
-            onClick={() => navigator.clipboard?.writeText(inviteLink)}
-            className="inline-flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-[12px] text-background"
+            onClick={doCopy}
+            className="inline-flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-[12px] text-background transition-transform active:scale-95"
           >
-            <Copy className="h-3.5 w-3.5" /> Копировать
+            <Copy className="h-3.5 w-3.5" /> {copied ? "Скопировано" : "Копировать"}
           </button>
         </div>
-      </div>
+      </section>
 
-      {user.role !== "customer" && (
+      {/* Orders */}
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Мои заказы</h2>
+          <Link to="/catalog" className="text-[12px] text-muted-foreground underline-offset-2 hover:underline">
+            В каталог →
+          </Link>
+        </div>
+        {orders.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-hairline p-8 text-center text-[13px] text-muted-foreground">
+            Пока нет заказов. Первая покупка даст +500 ₽ бонусами.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {orders.slice(0, 5).map((o) => (
+              <li key={o.id}>
+                <Link
+                  to="/order/$number"
+                  params={{ number: o.number }}
+                  className="flex items-center justify-between rounded-2xl border border-hairline bg-surface p-4 transition-colors hover:border-muted-foreground/40"
+                >
+                  <div>
+                    <div className="text-[13px] font-medium">{o.number}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {new Date(o.createdAt).toLocaleDateString("ru-RU")} · {o.items.length} товар(а)
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[13px] font-semibold tabular-nums">{formatPrice(o.total)}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{o.status}</div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Settings */}
+      <section className="mt-8 rounded-3xl bg-surface p-6">
+        <div className="mb-4 flex items-center gap-2 text-[13px] font-medium">
+          <Settings className="h-4 w-4" /> Настройки
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <SettingRow icon={UserRound} title="Профиль" hint="Имя, email, аватар" href="#" />
+          <SettingRow icon={Bell} title="Уведомления" hint="Push и email" href="#" />
+          <SettingRow icon={CreditCard} title="Способы оплаты" hint="Сохранённые карты" href="#" />
+          <SettingRow icon={Gift} title="Подарочные карты" hint="Купить или активировать" href="/gift" />
+          <div className="flex items-center justify-between rounded-2xl border border-hairline bg-background p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-[13px] font-medium">Тема оформления</div>
+                <div className="text-[11px] text-muted-foreground">Светлая · Тёмная · Системная</div>
+              </div>
+            </div>
+            <ThemeToggle />
+          </div>
+          <SettingRow icon={ShieldCheck} title="Конфиденциальность" hint="Согласия и 152-ФЗ" href="/legal/privacy" />
+        </div>
+      </section>
+
+      {isStaff && (
         <Link
           to="/admin"
-          className="mt-6 inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-[13px] font-medium text-background"
+          className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-[13px] font-medium text-background"
         >
-          Перейти в админ-панель
+          <ShieldCheck className="h-4 w-4" /> Перейти в панель · {roleLabel[user.role as keyof typeof roleLabel] ?? "Staff"}
         </Link>
       )}
     </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-background/10 p-3 backdrop-blur">
+      <div className="text-[10px] uppercase tracking-widest opacity-70">{label}</div>
+      <div className="mt-1 truncate text-[15px] font-semibold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function Action({
+  to,
+  icon: Icon,
+  label,
+  hint,
+}: {
+  to: string;
+  icon: typeof Heart;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <Link
+      to={to as any}
+      className="group flex flex-col items-start gap-2 rounded-2xl border border-hairline bg-surface p-4 transition-all hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div
+        className="flex h-9 w-9 items-center justify-center rounded-full"
+        style={{ backgroundColor: "var(--brand-soft)", color: "var(--brand)" }}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <div className="text-[13px] font-medium">{label}</div>
+        <div className="text-[11px] text-muted-foreground">{hint}</div>
+      </div>
+    </Link>
+  );
+}
+
+function SettingRow({
+  icon: Icon,
+  title,
+  hint,
+  href,
+}: {
+  icon: typeof Heart;
+  title: string;
+  hint: string;
+  href: string;
+}) {
+  const Cmp: any = href.startsWith("/") ? Link : "a";
+  const props = href.startsWith("/") ? { to: href } : { href };
+  return (
+    <Cmp
+      {...props}
+      className="flex items-center justify-between rounded-2xl border border-hairline bg-background p-4 transition-colors hover:border-muted-foreground/40"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="text-[13px] font-medium">{title}</div>
+          <div className="text-[11px] text-muted-foreground">{hint}</div>
+        </div>
+      </div>
+      <span className="text-[12px] text-muted-foreground">›</span>
+    </Cmp>
   );
 }
 

@@ -20,6 +20,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { SupportChatWidget } from "../components/SupportChatWidget";
 import { OwnerEditToggle } from "../components/Editable";
 import { MobileCartBar } from "../components/MobileCartBar";
+import { MobileBottomNav } from "../components/MobileBottomNav";
 import { initTheme } from "../lib/theme-store";
 import { useProducts } from "../lib/products-store";
 import { useNews } from "../lib/news-store";
@@ -161,10 +162,13 @@ function RootComponent() {
       void (async () => {
         try {
           const { fetchCollection } = await import("../lib/shared-collection.functions");
-          const [p, n, cms] = await Promise.all([
+          const [p, n, cms, tickets, supportThreads, orders] = await Promise.all([
             fetchCollection({ data: { name: "products" } }),
             fetchCollection({ data: { name: "news" } }),
             fetchCollection({ data: { name: "cms" } }),
+            fetchCollection({ data: { name: "tickets" } }),
+            fetchCollection({ data: { name: "support-threads" } }),
+            fetchCollection({ data: { name: "orders" } }),
           ]);
           if (Array.isArray(p)) useProducts.setState({ items: p as any });
           if (Array.isArray(n)) useNews.setState({ items: n as any });
@@ -175,11 +179,14 @@ function RootComponent() {
             }, {});
             useCms.setState({ values });
           }
+          if (Array.isArray(tickets)) useTickets.setState({ items: tickets as any });
+          if (Array.isArray(supportThreads)) useSupportChat.setState({ threads: supportThreads as any });
+          if (Array.isArray(orders)) useOrders.setState({ items: orders as any });
         } catch {
           /* ignore */
         }
       })();
-    }, 30000);
+    }, 15000);
     return () => clearInterval(iv);
   }, []);
 
@@ -193,6 +200,7 @@ function RootComponent() {
         <SiteFooter />
         <SupportChatWidget />
         <MobileCartBar />
+        <MobileBottomNav />
         <OwnerEditToggle />
       </div>
     </QueryClientProvider>
