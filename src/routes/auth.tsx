@@ -33,26 +33,49 @@ function AuthForm() {
   const [password, setPassword] = useState("");
   const [ref, setRef] = useState(search.ref ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!email.trim() || !password) {
+    if (busy) return;
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanRef = ref.trim();
+    if (!cleanEmail || !password) {
       setError("Заполните email и пароль");
       return;
     }
+    if (!/\S+@\S+\.\S+/.test(cleanEmail)) {
+      setError("Введите корректный email");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Пароль должен быть минимум 6 символов");
+      return;
+    }
+    setBusy(true);
     if (mode === "login") {
-      const res = login(email, password);
-      if (!res.ok) return setError(res.error);
+      const res = login(cleanEmail, password);
+      if (!res.ok) {
+        setBusy(false);
+        setError(res.error);
+        return;
+      }
       navigate({ to: "/" });
       return;
     }
-    if (!name.trim()) {
+    if (!cleanName) {
+      setBusy(false);
       setError("Укажите имя");
       return;
     }
-    const res = signup({ name, email, password, referralCode: ref || undefined });
-    if (!res.ok) return setError(res.error);
+    const res = signup({ name: cleanName, email: cleanEmail, password, referralCode: cleanRef || undefined });
+    if (!res.ok) {
+      setBusy(false);
+      setError(res.error);
+      return;
+    }
     navigate({ to: "/" });
   }
 
@@ -77,6 +100,7 @@ function AuthForm() {
           transition={{ duration: 0.25 }}
           className="mt-8 space-y-4"
           onSubmit={submit}
+          noValidate
         >
           {mode === "signup" && (
             <Field label="Имя" type="text" placeholder="Иван Петров" value={name} onChange={setName} required />
@@ -104,9 +128,10 @@ function AuthForm() {
           <motion.button
             whileTap={{ scale: 0.97 }}
             type="submit"
-            className="mt-4 h-12 w-full rounded-full bg-foreground text-[14px] font-medium text-background"
+            disabled={busy}
+            className="mt-4 h-12 w-full rounded-full bg-foreground text-[14px] font-medium text-background disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {mode === "login" ? "Войти" : "Зарегистрироваться"}
+            {busy ? "Подождите…" : mode === "login" ? "Войти" : "Зарегистрироваться"}
           </motion.button>
         </motion.form>
       </AnimatePresence>
@@ -114,8 +139,10 @@ function AuthForm() {
       <div className="mt-6 text-center text-[13px] text-muted-foreground">
         {mode === "login" ? "Нет аккаунта?" : "Уже есть аккаунт?"}{" "}
         <button
+          type="button"
           onClick={() => {
             setError(null);
+            setBusy(false);
             setMode(mode === "login" ? "signup" : "login");
           }}
           className="text-foreground underline underline-offset-2"
@@ -148,6 +175,7 @@ function AccountPanel() {
           <p className="mt-1 text-[13px] text-muted-foreground">{user.email}</p>
         </div>
         <button
+          type="button"
           onClick={logout}
           className="inline-flex items-center gap-2 rounded-full border border-hairline px-4 py-2 text-[12px] hover:bg-secondary"
         >
@@ -176,6 +204,7 @@ function AccountPanel() {
             onFocus={(e) => e.currentTarget.select()}
           />
           <button
+            type="button"
             onClick={() => navigator.clipboard?.writeText(inviteLink)}
             className="inline-flex items-center gap-1 rounded-full bg-foreground px-4 py-2 text-[12px] text-background"
           >

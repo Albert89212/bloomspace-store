@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 // Канал новостей магазина. Публикуют owner/admin.
 // Пользователи могут лайкать и оставлять комментарии.
@@ -44,7 +45,7 @@ export const useNews = create<State>()(
           items: [
             {
               ...p,
-              id: crypto.randomUUID(),
+              id: createId("news"),
               createdAt: Date.now(),
               likes: [],
               comments: [],
@@ -78,7 +79,7 @@ export const useNews = create<State>()(
                   ...x,
                   comments: [
                     ...x.comments,
-                    { ...c, id: crypto.randomUUID(), createdAt: Date.now() },
+                    { ...c, id: createId("comment"), createdAt: Date.now() },
                   ],
                 }
               : x,

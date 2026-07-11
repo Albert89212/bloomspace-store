@@ -21,6 +21,7 @@ export function SupportChatWidget() {
   return (
     <>
       <motion.button
+        type="button"
         onClick={toggle}
         aria-label="Открыть чат поддержки"
         whileTap={{ scale: 0.94 }}
@@ -47,6 +48,7 @@ export function SupportChatWidget() {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-full p-1.5 hover:bg-background"
                 aria-label="Закрыть"

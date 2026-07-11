@@ -159,6 +159,7 @@ export function SiteHeader() {
               <div className="flex h-14 items-center justify-between border-b border-hairline px-5">
                 <span className="text-[15px] font-semibold">Меню</span>
                 <button
+                  type="button"
                   onClick={() => setOpen(false)}
                   className="rounded-full p-2 hover:bg-secondary"
                   aria-label="Закрыть"

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export interface Review {
   id: string;
@@ -31,7 +32,7 @@ export const useReviews = create<ReviewsState>()(
           items: [
             {
               ...r,
-              id: crypto.randomUUID(),
+              id: createId("review"),
               createdAt: Date.now(),
               // Верифицированные покупки публикуем сразу, остальные — на модерацию
               approved: r.verifiedPurchase,

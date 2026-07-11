@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export type TicketStatus = "open" | "in_progress" | "resolved";
 
@@ -31,7 +32,7 @@ export const useTickets = create<TicketsState>()(
     (set) => ({
       items: [],
       create: (t) => {
-        const id = crypto.randomUUID();
+        const id = createId("ticket");
         set((s) => ({
           items: [
             {
@@ -42,7 +43,7 @@ export const useTickets = create<TicketsState>()(
               createdAt: Date.now(),
               messages: [
                 {
-                  id: crypto.randomUUID(),
+                  id: createId("message"),
                   author: "client",
                   text: t.text,
                   createdAt: Date.now(),
@@ -62,7 +63,7 @@ export const useTickets = create<TicketsState>()(
                   ...t,
                   messages: [
                     ...t.messages,
-                    { id: crypto.randomUUID(), author, text, createdAt: Date.now() },
+                    { id: createId("message"), author, text, createdAt: Date.now() },
                   ],
                 }
               : t,

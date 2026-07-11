@@ -1,6 +1,7 @@
 // Простые A/B-флаги: детерминированное распределение по userId/anon-id.
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export type FlagKey = "hero-copy" | "checkout-cta" | "price-anchor";
 
@@ -20,7 +21,7 @@ function hash(str: string) {
 export const useAB = create<State>()(
   persist(
     (set, get) => ({
-      anonId: crypto.randomUUID(),
+      anonId: createId("anon"),
       overrides: {},
       variant: (key) => {
         const o = get().overrides[key];

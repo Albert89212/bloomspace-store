@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export interface GiftCertificate {
   id: string;
@@ -36,7 +37,7 @@ export const useGifts = create<State>()(
       issue: (c) => {
         const gc: GiftCertificate = {
           ...c,
-          id: crypto.randomUUID(),
+          id: createId("gift"),
           code: code(),
           createdAt: Date.now(),
           redeemed: false,

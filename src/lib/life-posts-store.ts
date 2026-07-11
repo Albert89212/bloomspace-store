@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createId } from "./id";
 
 export interface LifeComment {
   id: string;
@@ -37,7 +38,7 @@ export const useLifePosts = create<LifeState>()(
       add: (p) =>
         set((s) => ({
           items: [
-            { ...p, id: crypto.randomUUID(), createdAt: Date.now(), likes: [], comments: [] },
+            { ...p, id: createId("life"), createdAt: Date.now(), likes: [], comments: [] },
             ...s.items,
           ],
         })),
@@ -63,7 +64,7 @@ export const useLifePosts = create<LifeState>()(
                   ...p,
                   comments: [
                     ...p.comments,
-                    { ...c, id: crypto.randomUUID(), createdAt: Date.now() },
+                    { ...c, id: createId("comment"), createdAt: Date.now() },
                   ],
                 }
               : p,
