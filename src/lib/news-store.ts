@@ -30,7 +30,7 @@ interface State {
   items: NewsPost[];
   _hydrated: boolean;
   hydrate: () => Promise<void>;
-  create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => void;
+  create: (p: Omit<NewsPost, "id" | "createdAt" | "likes" | "comments">) => NewsPost;
   remove: (id: string) => void;
   update: (id: string, patch: Partial<NewsPost>) => void;
   toggleLike: (postId: string, userId: string) => void;
@@ -40,7 +40,9 @@ interface State {
 }
 
 const push = (items: NewsPost[]) => {
-  void saveCollection({ data: { name: "news", items } }).catch(() => {});
+  void saveCollection({ data: { name: "news", items } }).catch((error) => {
+    console.error("Не удалось сохранить новости в БД", error);
+  });
 };
 
 export const useNews = create<State>()(
@@ -49,45 +51,45 @@ export const useNews = create<State>()(
       items: [],
       _hydrated: false,
       hydrate: async () => {
-        if (get()._hydrated) return;
         try {
           const remote = (await fetchCollection({ data: { name: "news" } })) as NewsPost[];
           if (Array.isArray(remote)) {
             set({ items: remote, _hydrated: true });
             return;
           }
-        } catch {
+        } catch (error) {
+          console.error("Не удалось загрузить новости из БД", error);
           /* keep local cache */
         } finally {
           set({ _hydrated: true });
         }
       },
-      create: (p) =>
+      create: (p) => {
+        const post: NewsPost = {
+          ...p,
+          id: createId("news"),
+          createdAt: Date.now(),
+          likes: [],
+          comments: [],
+        };
         set((s) => {
-          const items = [
-            {
-              ...p,
-              id: createId("news"),
-              createdAt: Date.now(),
-              likes: [],
-              comments: [],
-            },
-            ...s.items,
-          ];
+          const items = [post, ...s.items];
           push(items);
-          return { items };
-        }),
+          return { items, _hydrated: true };
+        });
+        return post;
+      },
       remove: (id) =>
         set((s) => {
           const items = s.items.filter((x) => x.id !== id);
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
       update: (id, patch) =>
         set((s) => {
           const items = s.items.map((x) => (x.id === id ? { ...x, ...patch } : x));
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
       toggleLike: (postId, userId) =>
         set((s) => {
@@ -102,7 +104,7 @@ export const useNews = create<State>()(
               : x,
           );
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
       addComment: (postId, c) =>
         set((s) => {
@@ -118,7 +120,7 @@ export const useNews = create<State>()(
               : x,
           );
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
       removeComment: (postId, commentId) =>
         set((s) => {
@@ -128,15 +130,15 @@ export const useNews = create<State>()(
               : x,
           );
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
       pin: (id, v) =>
         set((s) => {
           const items = s.items.map((x) => (x.id === id ? { ...x, pinned: v } : x));
           push(items);
-          return { items };
+          return { items, _hydrated: true };
         }),
     }),
-    { name: "sadova-news" },
+    { name: "sadova-news", partialize: (state) => ({ items: state.items }) },
   ),
 );
