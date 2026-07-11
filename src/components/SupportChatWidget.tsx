@@ -1,22 +1,43 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Send, X } from "lucide-react";
-import { useSupportChat } from "@/lib/support-chat-store";
+import { getGuestId, useSupportChat } from "@/lib/support-chat-store";
 import { useCurrentUser } from "@/lib/auth-store";
 
 export function SupportChatWidget() {
   const open = useSupportChat((s) => s.open);
   const toggle = useSupportChat((s) => s.toggle);
   const setOpen = useSupportChat((s) => s.setOpen);
-  const messages = useSupportChat((s) => s.messages);
-  const send = useSupportChat((s) => s.send);
+  const threads = useSupportChat((s) => s.threads);
+  const ensureThread = useSupportChat((s) => s.ensureThread);
+  const sendAsUser = useSupportChat((s) => s.sendAsUser);
+  const markReadByUser = useSupportChat((s) => s.markReadByUser);
   const user = useCurrentUser();
   const [text, setText] = useState("");
   const bodyRef = useRef<HTMLDivElement>(null);
 
+  // Идентификатор владельца треда: авторизованный юзер или гость из localStorage.
+  const me = useMemo(
+    () =>
+      user
+        ? { id: user.id, name: user.name, email: user.email }
+        : { id: getGuestId(), name: "Гость" },
+    [user],
+  );
+  const thread = threads.find((t) => t.userId === me.id);
+
   useEffect(() => {
-    if (open) bodyRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
-  }, [open, messages.length]);
+    if (open) ensureThread(me);
+  }, [open, me, ensureThread]);
+
+  useEffect(() => {
+    if (open) {
+      bodyRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
+      markReadByUser(me.id);
+    }
+  }, [open, thread?.messages.length, me.id, markReadByUser]);
+
+  const unread = thread?.unreadForUser ?? 0;
 
   return (
     <>
@@ -29,6 +50,11 @@ export function SupportChatWidget() {
       >
         <MessageCircle className="h-5 w-5" />
         <span className="hidden text-[13px] font-medium sm:inline">Поддержка</span>
+        {unread > 0 && !open && (
+          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+            {unread}
+          </span>
+        )}
       </motion.button>
 
       <AnimatePresence>
@@ -42,7 +68,7 @@ export function SupportChatWidget() {
           >
             <div className="flex items-center justify-between border-b border-hairline bg-surface px-5 py-3">
               <div>
-                <div className="text-[13px] font-medium">SADOVA · Поддержка</div>
+                <div className="text-[13px] font-medium">SADOVA · Техподдержка</div>
                 <div className="text-[11px] text-muted-foreground">
                   Онлайн · среднее время ответа 3 мин
                 </div>
@@ -58,7 +84,7 @@ export function SupportChatWidget() {
             </div>
 
             <div ref={bodyRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
-              {messages.map((m) => (
+              {(thread?.messages ?? []).map((m) => (
                 <div
                   key={m.id}
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-[13px] ${
@@ -76,7 +102,9 @@ export function SupportChatWidget() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                send(text, user?.name ?? "Гость");
+                if (!text.trim()) return;
+                ensureThread(me);
+                sendAsUser(me.id, text);
                 setText("");
               }}
               className="flex items-center gap-2 border-t border-hairline p-3"
