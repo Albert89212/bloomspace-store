@@ -47,6 +47,53 @@ const TEST_OWNER: AppUser = {
   emailVerified: true,
 };
 
+const OWNER_PASSWORD = "owner123";
+const LOCAL_PASSWORDS_KEY = "sadova-auth-passwords-v1";
+
+function isServerAuthUnavailable(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect/i.test(message);
+}
+
+function messageFrom(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function upsertUser(users: AppUser[], user: AppUser) {
+  const base = users.some((u) => u.id === TEST_OWNER.id || u.email === TEST_OWNER.email)
+    ? users
+    : [TEST_OWNER, ...users];
+  return [user, ...base.filter((u) => u.id !== user.id && u.email !== user.email)];
+}
+
+function referralCode(len = 6) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return Array.from({ length: len }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+}
+
+async function localHash(email: string, password: string) {
+  const payload = `${email}:${password}:sadova-local-fallback`;
+  if (typeof crypto !== "undefined" && crypto.subtle) {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+    return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  return payload;
+}
+
+function readLocalPasswords(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(LOCAL_PASSWORDS_KEY) || "{}") as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalPasswords(value: Record<string, string>) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(LOCAL_PASSWORDS_KEY, JSON.stringify(value));
+}
+
 export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -57,7 +104,11 @@ export const useAuth = create<AuthState>()(
         if (get()._hydrated) return;
         try {
           const { user } = await serverMe();
-          set({ users: user ? [user as AppUser] : [TEST_OWNER], currentUserId: user?.id ?? null, _hydrated: true });
+          set((s) => ({
+            users: user ? upsertUser(s.users, user as AppUser) : upsertUser(s.users, TEST_OWNER),
+            currentUserId: user?.id ?? s.currentUserId,
+            _hydrated: true,
+          }));
           return;
         } catch {
           /* keep local cache */
@@ -70,25 +121,64 @@ export const useAuth = create<AuthState>()(
         if (password.length < 6) return { ok: false, error: "Пароль минимум 6 символов" };
         try {
           const res = await serverSignup({ data: { name: name.trim(), email, password, referralCode } });
-          set({ users: [res.user as AppUser], currentUserId: res.user.id, _hydrated: true });
+          set((s) => ({ users: upsertUser(s.users, res.user as AppUser), currentUserId: res.user.id, _hydrated: true }));
           return { ok: true };
         } catch (error) {
-          return { ok: false, error: error instanceof Error ? error.message : "Не удалось зарегистрироваться" };
+          if (!isServerAuthUnavailable(error)) {
+            return { ok: false, error: messageFrom(error, "Не удалось зарегистрироваться") };
+          }
+
+          const exists = get().users.some((u) => u.email.toLowerCase() === email);
+          if (exists) return { ok: false, error: "Email уже зарегистрирован" };
+
+          const ref = referralCode?.trim().toUpperCase();
+          const user: AppUser = {
+            id: `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+            name: name.trim(),
+            email,
+            role: "customer",
+            referralCode: referralCode(),
+            referredBy: ref || undefined,
+            bonusBalance: ref ? 500 : 0,
+            createdAt: Date.now(),
+            emailVerified: true,
+            invitedCount: 0,
+          };
+          const passwords = readLocalPasswords();
+          passwords[email] = await localHash(email, password);
+          writeLocalPasswords(passwords);
+          set((s) => ({ users: upsertUser(s.users, user), currentUserId: user.id, _hydrated: true }));
+          return { ok: true };
         }
       },
       login: async (email, password) => {
         email = email.trim().toLowerCase();
         try {
           const res = await serverLogin({ data: { email, password } });
-          set({ users: [res.user as AppUser], currentUserId: res.user.id, _hydrated: true });
+          set((s) => ({ users: upsertUser(s.users, res.user as AppUser), currentUserId: res.user.id, _hydrated: true }));
           return { ok: true };
         } catch (error) {
-          return { ok: false, error: error instanceof Error ? error.message : "Неверный email или пароль" };
+          if (!isServerAuthUnavailable(error)) {
+            return { ok: false, error: messageFrom(error, "Неверный email или пароль") };
+          }
+
+          if (email === TEST_OWNER.email && password === OWNER_PASSWORD) {
+            set((s) => ({ users: upsertUser(s.users, TEST_OWNER), currentUserId: TEST_OWNER.id, _hydrated: true }));
+            return { ok: true };
+          }
+
+          const user = get().users.find((u) => u.email.toLowerCase() === email);
+          const stored = readLocalPasswords()[email];
+          if (user && stored && stored === (await localHash(email, password))) {
+            set((s) => ({ users: upsertUser(s.users, user), currentUserId: user.id, _hydrated: true }));
+            return { ok: true };
+          }
+          return { ok: false, error: "Неверный email или пароль" };
         }
       },
       logout: async () => {
         await serverLogout().catch(() => {});
-        set({ currentUserId: null, users: [TEST_OWNER] });
+        set((s) => ({ currentUserId: null, users: upsertUser(s.users, TEST_OWNER) }));
       },
       updateUser: (id, patch) =>
         set((s) => {
