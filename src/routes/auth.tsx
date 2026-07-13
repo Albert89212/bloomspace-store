@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bell,
   Copy,
@@ -177,12 +177,16 @@ function AuthForm() {
 function AccountPanel() {
   const user = useCurrentUser()!;
   const logout = useAuth((s) => s.logout);
-  const orders = useOrders((s) =>
-    s.items.filter((o) => o.customer.email.toLowerCase() === user.email.toLowerCase()),
-  );
+  const allOrders = useOrders((s) => s.items);
   const wishCount = useWishlist(selectWishCount);
-  const myTickets = useTickets((s) =>
-    s.items.filter((t) => t.userId === user.id || t.email.toLowerCase() === user.email.toLowerCase()),
+  const allTickets = useTickets((s) => s.items);
+  const orders = useMemo(
+    () => allOrders.filter((o) => o.customer.email.toLowerCase() === user.email.toLowerCase()),
+    [allOrders, user.email],
+  );
+  const myTickets = useMemo(
+    () => allTickets.filter((t) => t.userId === user.id || t.email.toLowerCase() === user.email.toLowerCase()),
+    [allTickets, user.email, user.id],
   );
   const isStaff = user.role !== "customer" && user.role !== "dealer";
   const getLabel = useAdmin((s) => s.getLabel);

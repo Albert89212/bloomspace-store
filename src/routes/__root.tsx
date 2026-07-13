@@ -22,7 +22,7 @@ import { OwnerEditToggle } from "../components/Editable";
 import { MobileCartBar } from "../components/MobileCartBar";
 import { MobileBottomNav } from "../components/MobileBottomNav";
 import { initTheme } from "../lib/theme-store";
-import { useProducts } from "../lib/products-store";
+import { sanitizeProducts, useProducts } from "../lib/products-store";
 import { useNews } from "../lib/news-store";
 import { useCms } from "../lib/cms-store";
 import { useAuth } from "../lib/auth-store";
@@ -126,11 +126,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <head>
+    <html lang="ru" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -170,7 +170,7 @@ function RootComponent() {
             fetchCollection({ data: { name: "support-threads" } }),
             fetchCollection({ data: { name: "orders" } }),
           ]);
-          if (Array.isArray(p)) useProducts.setState({ items: p as any });
+          if (Array.isArray(p)) useProducts.setState({ items: sanitizeProducts(p as any) });
           if (Array.isArray(n)) useNews.setState({ items: n as any });
           if (Array.isArray(cms)) {
             const values = (cms as Array<{ key?: string; value?: string }>).reduce<Record<string, string>>((acc, item) => {
@@ -192,9 +192,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <div className="flex min-h-screen flex-col bg-background text-foreground" suppressHydrationWarning>
         <SiteHeader />
-        <main className="flex-1">
+        <main className="flex-1" suppressHydrationWarning>
           <Outlet />
         </main>
         <SiteFooter />

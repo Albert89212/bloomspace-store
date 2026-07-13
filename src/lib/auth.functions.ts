@@ -12,7 +12,7 @@ const signupSchema = loginSchema.extend({
 });
 
 export const serverSignup = createServerFn({ method: "POST" })
-  .inputValidator((data) => signupSchema.parse(data))
+  .validator((data) => signupSchema.parse(data))
   .handler(async ({ data }) => {
     const { getSessionPassword, registerUser } = await import("./auth.server");
     const { useSession } = await import("@tanstack/react-start/server");
@@ -28,7 +28,7 @@ export const serverSignup = createServerFn({ method: "POST" })
   });
 
 export const serverLogin = createServerFn({ method: "POST" })
-  .inputValidator((data) => loginSchema.parse(data))
+  .validator((data) => loginSchema.parse(data))
   .handler(async ({ data }) => {
     const { authenticateUser, getSessionPassword } = await import("./auth.server");
     const { useSession } = await import("@tanstack/react-start/server");
