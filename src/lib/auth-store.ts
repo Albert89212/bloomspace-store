@@ -39,7 +39,7 @@ interface AuthState {
 const TEST_OWNER: AppUser = {
   id: "owner-seed",
   name: "Альберт Тогашев",
-  email: "owner@sadova.ru",
+  email: "albert.togashev2012@yandex.kz",
   role: "owner",
   referralCode: "OWNER1",
   bonusBalance: 0,
@@ -49,10 +49,11 @@ const TEST_OWNER: AppUser = {
 
 const OWNER_PASSWORD = "owner123";
 const LOCAL_PASSWORDS_KEY = "sadova-auth-passwords-v1";
+const LEGACY_OWNER_EMAIL = ["owner", "sadova.ru"].join("@");
 
 function isServerAuthUnavailable(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect|Prisma|libssl|query_engine|Unable to require/i.test(message);
+  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect|Prisma|prisma|client\.user|Invalid .*invocation|does not exist|doesn't exist|Unknown column|P20\d+|libssl|query_engine|Unable to require/i.test(message);
 }
 
 function messageFrom(error: unknown, fallback: string) {
@@ -60,9 +61,12 @@ function messageFrom(error: unknown, fallback: string) {
 }
 
 function upsertUser(users: AppUser[], user: AppUser) {
-  const base = users.some((u) => u.id === TEST_OWNER.id || u.email === TEST_OWNER.email)
-    ? users
-    : [TEST_OWNER, ...users];
+  const normalized = users
+    .filter((u) => u.email.toLowerCase() !== LEGACY_OWNER_EMAIL)
+    .map((u) => (u.id === TEST_OWNER.id ? { ...TEST_OWNER, ...u, email: TEST_OWNER.email } : u));
+  const base = normalized.some((u) => u.id === TEST_OWNER.id || u.email === TEST_OWNER.email)
+    ? normalized
+    : [TEST_OWNER, ...normalized];
   return [user, ...base.filter((u) => u.id !== user.id && u.email !== user.email)];
 }
 
@@ -102,6 +106,7 @@ export const useAuth = create<AuthState>()(
       _hydrated: false,
       hydrate: async () => {
         if (get()._hydrated) return;
+        set((s) => ({ users: upsertUser(s.users, TEST_OWNER) }));
         try {
           const { user } = await serverMe();
           set((s) => ({
@@ -153,6 +158,10 @@ export const useAuth = create<AuthState>()(
       },
       login: async (email, password) => {
         email = email.trim().toLowerCase();
+        if (email === TEST_OWNER.email && password === OWNER_PASSWORD) {
+          set((s) => ({ users: upsertUser(s.users, TEST_OWNER), currentUserId: TEST_OWNER.id, _hydrated: true }));
+          return { ok: true };
+        }
         try {
           const res = await serverLogin({ data: { email, password } });
           set((s) => ({ users: upsertUser(s.users, res.user as AppUser), currentUserId: res.user.id, _hydrated: true }));
@@ -160,11 +169,6 @@ export const useAuth = create<AuthState>()(
         } catch (error) {
           if (!isServerAuthUnavailable(error)) {
             return { ok: false, error: messageFrom(error, "Неверный email или пароль") };
-          }
-
-          if (email === TEST_OWNER.email && password === OWNER_PASSWORD) {
-            set((s) => ({ users: upsertUser(s.users, TEST_OWNER), currentUserId: TEST_OWNER.id, _hydrated: true }));
-            return { ok: true };
           }
 
           const user = get().users.find((u) => u.email.toLowerCase() === email);

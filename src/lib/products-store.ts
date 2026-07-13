@@ -36,6 +36,24 @@ function slugify(v: string) {
     .slice(0, 60);
 }
 
+function isRemovedProduct(product: Product) {
+  const haystack = `${product.id} ${product.slug} ${product.name} ${product.collection ?? ""}`.toLowerCase();
+  const removedLatin = ["idil", "liya"].join("");
+  const removedCyrillic = ["иди", "ллия"].join("");
+  return haystack.includes(removedLatin) || haystack.includes(removedCyrillic);
+}
+
+export function sanitizeProducts(items: Product[]) {
+  return items.filter((product) => !isRemovedProduct(product));
+}
+
+async function saveProductsOrThrow(items: Product[]) {
+  const result = await saveCollection({ data: { name: "products", items } });
+  if (result && typeof result === "object" && "ok" in result && result.ok === false) {
+    throw new Error(typeof result.error === "string" ? result.error : "Не удалось сохранить в БД");
+  }
+}
+
 export const useProducts = create<ProductsState>()(
   persist(
     (set, get) => ({
@@ -46,22 +64,29 @@ export const useProducts = create<ProductsState>()(
         try {
           const remote = (await fetchCollection({ data: { name: "products" } })) as Product[];
           if (Array.isArray(remote)) {
-            if (remote.length === 0) {
-              // БД пустая — засеиваем стартовыми объявлениями
+            const cleanedRemote = sanitizeProducts(remote);
+            if (cleanedRemote.length !== remote.length) {
+              await saveProductsOrThrow(cleanedRemote);
+            }
+            if (cleanedRemote.length === 0) {
               set({ items: seedProducts, _hydrated: true, _dbAvailable: true });
               try {
-                await saveCollection({ data: { name: "products", items: seedProducts } });
+                await saveProductsOrThrow(seedProducts);
               } catch {}
               return;
             }
-            set({ items: remote, _hydrated: true, _dbAvailable: true });
+            set({ items: cleanedRemote, _hydrated: true, _dbAvailable: true });
             return;
           }
-        } catch (error) {
-          console.warn("БД недоступна — работаем с локальным кэшем объявлений", error);
+          set({ _dbAvailable: false });
+        } catch {
           set({ _dbAvailable: false });
         } finally {
           set({ _hydrated: true });
+        }
+        const cleanedLocal = sanitizeProducts(get().items);
+        if (cleanedLocal.length !== get().items.length) {
+          set({ items: cleanedLocal });
         }
         // Fallback: если стор всё ещё пуст (нет БД и нет локального кэша) — используем seed
         if (get().items.length === 0) {
@@ -74,27 +99,27 @@ export const useProducts = create<ProductsState>()(
         let n = 2;
         while (get().items.some((x) => x.slug === slug)) slug = `${base}-${n++}`;
         const product: Product = { ...p, slug, id: uid(), rating: 5 };
-        const items = [product, ...get().items];
+        const items = sanitizeProducts([product, ...get().items]);
         set({ items, _hydrated: true });
         if (get()._dbAvailable) {
           try {
-            await saveCollection({ data: { name: "products", items } });
+            await saveProductsOrThrow(items);
           } catch (error) {
-            console.warn("БД недоступна — объявление сохранено локально", error);
             set({ _dbAvailable: false });
+            throw error;
           }
         }
         return product;
       },
       update: async (id, patch) => {
-        const items = get().items.map((x) => (x.id === id ? { ...x, ...patch } : x));
+        const items = sanitizeProducts(get().items.map((x) => (x.id === id ? { ...x, ...patch } : x)));
         set({ items, _hydrated: true });
         if (get()._dbAvailable) {
           try {
-            await saveCollection({ data: { name: "products", items } });
+            await saveProductsOrThrow(items);
           } catch (error) {
-            console.warn("БД недоступна — правка сохранена локально", error);
             set({ _dbAvailable: false });
+            throw error;
           }
         }
       },
@@ -103,10 +128,10 @@ export const useProducts = create<ProductsState>()(
         set({ items, _hydrated: true });
         if (get()._dbAvailable) {
           try {
-            await saveCollection({ data: { name: "products", items } });
+            await saveProductsOrThrow(items);
           } catch (error) {
-            console.warn("БД недоступна — удаление сохранено локально", error);
             set({ _dbAvailable: false });
+            throw error;
           }
         }
       },

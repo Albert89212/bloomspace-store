@@ -90,7 +90,7 @@ async function toSafeUser(user: RawUser): Promise<SafeUserDto> {
 async function ensureOwner() {
   const client = db();
   if (!client) return null;
-  const email = normalizeEmail(process.env.OWNER_EMAIL || "owner@sadova.ru");
+  const email = normalizeEmail(process.env.OWNER_EMAIL || "albert.togashev2012@yandex.kz");
   const password = process.env.OWNER_PASSWORD || "owner123";
   const existing = await client.user.findUnique({ where: { email } });
   if (existing) return existing;

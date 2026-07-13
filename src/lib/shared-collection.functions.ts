@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 export const fetchCollection = createServerFn({ method: "GET" })
-  .inputValidator((data) => z.object({ name: z.string() }).parse(data))
+  .validator((data) => z.object({ name: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const allowed = new Set([
       "products",
@@ -24,14 +24,13 @@ export const fetchCollection = createServerFn({ method: "GET" })
     try {
       const { readCollection } = await import("./shared-collection.server");
       return await readCollection<any>(data.name);
-    } catch (error) {
-      console.warn(`Shared collection "${data.name}" is unavailable`, error);
+    } catch {
       return null;
     }
   });
 
 export const saveCollection = createServerFn({ method: "POST" })
-  .inputValidator((data) =>
+  .validator((data) =>
     z.object({ name: z.string(), items: z.array(z.any()) }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -58,7 +57,6 @@ export const saveCollection = createServerFn({ method: "POST" })
       return { ok: true, error: null };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(`Shared collection "${data.name}" was not saved`, error);
       return { ok: false, error: message };
     }
   });
