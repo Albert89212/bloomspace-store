@@ -53,7 +53,7 @@ const LEGACY_OWNER_EMAIL = ["owner", "sadova.ru"].join("@");
 
 function isServerAuthUnavailable(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return /База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect|Prisma|prisma|client\.user|Invalid .*invocation|does not exist|doesn't exist|Unknown column|P20\d+|libssl|query_engine|Unable to require/i.test(message);
+  return /Failed to fetch|NetworkError|fetch failed|Load failed|ERR_|TypeError: fetch|База данных|DATABASE_URL|SESSION_SECRET|ECONNREFUSED|connect|Prisma|prisma|client\.user|Invalid .*invocation|does not exist|doesn't exist|Unknown column|P20\d+|libssl|query_engine|Unable to require|Unexpected token|<!DOCTYPE|status: 5\d\d|Internal Server Error/i.test(message);
 }
 
 function messageFrom(error: unknown, fallback: string) {
