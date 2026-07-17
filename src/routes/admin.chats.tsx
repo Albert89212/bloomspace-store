@@ -38,6 +38,8 @@ function SupportChatsPane() {
   const sendAsStaff = useSupportChat((s) => s.sendAsStaff);
   const markReadByStaff = useSupportChat((s) => s.markReadByStaff);
   const removeThread = useSupportChat((s) => s.removeThread);
+  const hydrate = useSupportChat((s) => s.hydrate);
+  const refresh = useSupportChat((s) => s.refresh);
   const role = useAdmin((s) => s.role);
   const user = useCurrentUser();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -56,6 +58,12 @@ function SupportChatsPane() {
   useEffect(() => {
     if (openId) markReadByStaff(openId);
   }, [openId, markReadByStaff, active?.messages.length]);
+
+  useEffect(() => { void hydrate(); }, [hydrate]);
+  useEffect(() => {
+    const id = window.setInterval(() => { void refresh(); }, 4000);
+    return () => window.clearInterval(id);
+  }, [refresh]);
 
   return (
     <div>
