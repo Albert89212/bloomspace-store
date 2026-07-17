@@ -37,6 +37,7 @@ interface State {
   threads: SupportThread[];
   _hydrated: boolean;
   hydrate: () => Promise<void>;
+  refresh: () => Promise<void>;
   toggle: () => void;
   setOpen: (v: boolean) => void;
   ensureThread: (user: { id: string; name: string; email?: string }) => SupportThread;
@@ -75,16 +76,38 @@ export const useSupportChat = create<State>()(
       _hydrated: false,
       hydrate: async () => {
         if (get()._hydrated) return;
-        try {
-          const remote = (await fetchCollection({ data: { name: "support-threads" } })) as SupportThread[];
-          if (Array.isArray(remote)) {
-            set({ threads: remote, _hydrated: true });
-            return;
-          }
-        } catch {
-          /* keep local cache */
-        }
+        await get().refresh();
         set({ _hydrated: true });
+      },
+      refresh: async () => {
+        try {
+          const remote = (await fetchCollection({ data: { name: "support-threads" } })) as SupportThread[] | null;
+          if (!Array.isArray(remote)) return;
+          const local = get().threads;
+          const byId = new Map<string, SupportThread>();
+          for (const t of [...local, ...remote]) {
+            const prev = byId.get(t.userId);
+            if (!prev) { byId.set(t.userId, t); continue; }
+            // merge messages by id, keep newest counters
+            const seen = new Set(prev.messages.map((m) => m.id));
+            const merged = [...prev.messages];
+            for (const m of t.messages) if (!seen.has(m.id)) merged.push(m);
+            merged.sort((a, b) => a.createdAt - b.createdAt);
+            const newer = t.updatedAt >= prev.updatedAt ? t : prev;
+            byId.set(t.userId, {
+              ...newer,
+              messages: merged,
+              unreadForStaff: Math.max(prev.unreadForStaff, t.unreadForStaff),
+              unreadForUser: Math.max(prev.unreadForUser, t.unreadForUser),
+            });
+          }
+          const merged = [...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+          const same = merged.length === local.length &&
+            merged.every((t, i) => local[i]?.id === t.id && local[i]?.messages.length === t.messages.length && local[i]?.updatedAt === t.updatedAt);
+          if (!same) set({ threads: merged });
+        } catch {
+          /* offline */
+        }
       },
       toggle: () => set((s) => ({ open: !s.open })),
       setOpen: (v) => set({ open: v }),
