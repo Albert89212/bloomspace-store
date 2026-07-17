@@ -41,7 +41,10 @@ if (!existsSync(serverPath)) {
 }
 
 globalThis.__srvxLoader__ = ({ server }) => {
-  const nodeServer = http.createServer(server.node.handler);
+  const nodeServer = http.createServer((request, response) => {
+    normalizeIncomingHostHeaders(request);
+    server.node.handler(request, response);
+  });
 
   nodeServer.on("error", (error) => {
     console.error("Server failed to start:", error);
@@ -52,6 +55,38 @@ globalThis.__srvxLoader__ = ({ server }) => {
     console.log(`✅ SADOVA server listening on http://${host}:${port}`);
   });
 };
+
+function normalizeIncomingHostHeaders(request) {
+  for (const headerName of ["host", "x-forwarded-host"]) {
+    const headerValue = request.headers[headerName];
+    const normalized = normalizeHostHeader(headerValue);
+
+    if (normalized) {
+      request.headers[headerName] = normalized;
+    }
+  }
+}
+
+function normalizeHostHeader(value) {
+  if (typeof value !== "string" || value.trim() === "") return undefined;
+
+  return value
+    .split(",")
+    .map((part) => normalizeSingleHost(part.trim()))
+    .join(", ");
+}
+
+function normalizeSingleHost(value) {
+  const match = value.match(/^(\d{1,3}(?:\.\d{1,3}){3})(:\d+)?$/);
+  if (!match) return value;
+
+  const octets = match[1].split(".").map((octet) => Number.parseInt(octet, 10));
+  if (octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)) {
+    return value;
+  }
+
+  return `${octets.join(".")}${match[2] ?? ""}`;
+}
 
 await import(serverPath).catch((error) => {
   console.error("❌ Не удалось запустить серверный бандл:", error);
