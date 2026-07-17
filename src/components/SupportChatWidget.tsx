@@ -12,6 +12,8 @@ export function SupportChatWidget() {
   const ensureThread = useSupportChat((s) => s.ensureThread);
   const sendAsUser = useSupportChat((s) => s.sendAsUser);
   const markReadByUser = useSupportChat((s) => s.markReadByUser);
+  const hydrate = useSupportChat((s) => s.hydrate);
+  const refresh = useSupportChat((s) => s.refresh);
   const user = useCurrentUser();
   const [text, setText] = useState("");
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -26,9 +28,19 @@ export function SupportChatWidget() {
   );
   const thread = threads.find((t) => t.userId === me.id);
 
+  useEffect(() => { void hydrate(); }, [hydrate]);
+
   useEffect(() => {
     if (open) ensureThread(me);
   }, [open, me, ensureThread]);
+
+  // Пока чат открыт — подтягиваем ответы поддержки каждые 4 секунды.
+  useEffect(() => {
+    if (!open) return;
+    void refresh();
+    const id = window.setInterval(() => { void refresh(); }, 4000);
+    return () => window.clearInterval(id);
+  }, [open, refresh]);
 
   useEffect(() => {
     if (open) {

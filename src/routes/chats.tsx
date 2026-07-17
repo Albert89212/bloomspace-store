@@ -258,6 +258,8 @@ function SupportPane() {
   const ensureThread = useSupportChat((s) => s.ensureThread);
   const sendAsUser = useSupportChat((s) => s.sendAsUser);
   const markReadByUser = useSupportChat((s) => s.markReadByUser);
+  const hydrate = useSupportChat((s) => s.hydrate);
+  const refresh = useSupportChat((s) => s.refresh);
   const [text, setText] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -274,6 +276,12 @@ function SupportPane() {
     ensureThread(me);
     markReadByUser(me.id);
   }, [me, ensureThread, markReadByUser]);
+
+  useEffect(() => { void hydrate(); }, [hydrate]);
+  useEffect(() => {
+    const id = window.setInterval(() => { void refresh(); }, 4000);
+    return () => window.clearInterval(id);
+  }, [refresh]);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
